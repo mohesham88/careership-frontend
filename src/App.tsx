@@ -1,35 +1,61 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import { ThemeProvider, CssBaseline, Box } from "@mui/material";
+import { createTheme } from "@mui/material/styles";
+import Login from "./pages/Login";
+import SignUp from "./pages/SignUp";
+import Navbar from "./components/Navbar";
+import { useAuthStore } from "./store/authStore";
+import { useThemeStore } from "./store/themeStore";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const { darkMode, toggleDarkMode } = useThemeStore();
+
+  const theme = createTheme({
+    palette: {
+      mode: darkMode ? "dark" : "light",
+    },
+  });
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <Router>
+        <Box
+          sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}
+        >
+          <Navbar darkMode={darkMode} onDarkModeToggle={toggleDarkMode} />
+          <Box component="main" sx={{ flexGrow: 1 }}>
+            <Routes>
+              <Route
+                path="/login"
+                element={!isAuthenticated ? <Login /> : <Navigate to="/" />}
+              />
+              <Route
+                path="/signup"
+                element={!isAuthenticated ? <SignUp /> : <Navigate to="/" />}
+              />
+              <Route
+                path="/"
+                element={
+                  isAuthenticated ? (
+                    <div>Home Page</div>
+                  ) : (
+                    <Navigate to="/login" />
+                  )
+                }
+              />
+            </Routes>
+          </Box>
+        </Box>
+      </Router>
+    </ThemeProvider>
+  );
 }
 
-export default App
+export default App;
