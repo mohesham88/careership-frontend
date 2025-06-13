@@ -8,6 +8,7 @@ import { ThemeProvider, CssBaseline, Box } from "@mui/material";
 import { createTheme } from "@mui/material/styles";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
+import Profile from "./pages/Profile";
 import Navbar from "./components/Navbar";
 import { useAuthStore } from "./store/authStore";
 import { useThemeStore } from "./store/themeStore";
@@ -39,6 +40,12 @@ function App() {
               <Route
                 path="/signup"
                 element={!isAuthenticated ? <SignUp /> : <Navigate to="/" />}
+              />
+              <Route
+                path="/profile"
+                element={
+                  isAuthenticated ? <Profile /> : <Navigate to="/login" />
+                }
               />
               <Route
                 path="/"
