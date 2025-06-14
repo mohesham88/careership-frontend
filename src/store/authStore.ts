@@ -16,7 +16,8 @@ interface ValidationError {
 
 interface AuthState {
   user: User | null;
-  token: string | null;
+  accessToken: string | null;
+  refreshToken: string | null;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
   signup: (data: {
@@ -26,14 +27,15 @@ interface AuthState {
     password: string;
   }) => Promise<void>;
   logout: () => void;
-  setToken: (token: string) => void;
+  setTokens: (access: string, refresh: string) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
       user: null,
-      token: null,
+      accessToken: null,
+      refreshToken: null,
       isAuthenticated: false,
       login: async (email: string, password: string) => {
         try {
@@ -42,11 +44,11 @@ export const useAuthStore = create<AuthState>()(
             password,
           });
 
-          const { token, user } = response.data;
+          const { access, refresh } = response.data;
 
           set({
-            user,
-            token,
+            accessToken: access,
+            refreshToken: refresh,
             isAuthenticated: true,
           });
         } catch (error) {
@@ -61,11 +63,10 @@ export const useAuthStore = create<AuthState>()(
         try {
           const response = await api.post("/auth/register/", data);
 
-          const { token, user } = response.data;
+          const { user } = response.data;
 
           set({
             user,
-            token,
             isAuthenticated: true,
           });
         } catch (error) {
@@ -84,12 +85,17 @@ export const useAuthStore = create<AuthState>()(
       logout: () => {
         set({
           user: null,
-          token: null,
+          accessToken: null,
+          refreshToken: null,
           isAuthenticated: false,
         });
       },
-      setToken: (token: string) => {
-        set({ token });
+      setTokens: (access: string, refresh: string) => {
+        set({
+          accessToken: access,
+          refreshToken: refresh,
+          isAuthenticated: true,
+        });
       },
     }),
     {

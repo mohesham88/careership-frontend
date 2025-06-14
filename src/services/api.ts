@@ -27,12 +27,12 @@ const api: AxiosInstance = axios.create({
 // Request interceptor
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    // Get token from auth store
-    const token = useAuthStore.getState().token;
+    // Get access token from auth store
+    const accessToken = useAuthStore.getState().accessToken;
 
     // If token exists, add it to headers
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    if (accessToken) {
+      config.headers.Authorization = `JWT ${accessToken}`;
     }
 
     return config;
@@ -60,7 +60,7 @@ api.interceptors.response.use(
       useAuthStore.getState().logout();
 
       // Redirect to login page
-      // window.location.href = "/login";
+      window.location.href = "/login";
       return Promise.reject(error);
     }
 
