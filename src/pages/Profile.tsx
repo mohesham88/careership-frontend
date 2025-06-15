@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Box,
   Container,
@@ -7,8 +7,8 @@ import {
   Avatar,
   Button,
   TextField,
+  Grid,
 } from "@mui/material";
-import Grid from "@mui/material/Grid";
 import { Edit as EditIcon, Save as SaveIcon } from "@mui/icons-material";
 import api from "../services/api";
 
@@ -33,6 +33,9 @@ const Profile = () => {
     phone: "",
     avatar: null,
   });
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const fetchProfileData = async () => {
@@ -50,21 +53,35 @@ const Profile = () => {
     setIsEditing(true);
   };
 
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    setAvatarFile(file);
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => setAvatarPreview(reader.result as string);
+      reader.readAsDataURL(file);
+    } else {
+      setAvatarPreview(null);
+    }
+  };
+
+  const formData = new FormData();
+  if (profileData.first_name) formData.append("first_name", profileData.first_name);
+  if (profileData.last_name) formData.append("last_name", profileData.last_name);
+  if (profileData.email) formData.append("email", profileData.email);
+  if (profileData.user_type) formData.append("user_type", profileData.user_type);
+  if (profileData.phone) formData.append("phone", profileData.phone);
+  if (avatarFile) formData.append("avatar", avatarFile);
+
   const handleSave = async () => {
     setIsEditing(false);
-    // TODO: Make API call to save the changes
-    // Example:
-    // try {
-    //   await fetch('/api/profile', {
-    //     method: 'PUT',
-    //     headers: {
-    //       'Content-Type': 'application/json',
-    //     },
-    //     body: JSON.stringify(profileData),
-    //   });
-    // } catch (error) {
-    //   console.error('Error saving profile data:', error);
-    // }
+    try {
+      await api.patch("/auth/profile/", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+    } catch (error) {
+      console.error('Error saving profile data:', error);
+    }
   };
 
   const handleChange = (field: keyof ProfileData) => (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -79,10 +96,20 @@ const Profile = () => {
       <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }}>
         <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", mb: 4 }}>
           <Avatar
-            sx={{ width: 120, height: 120, mb: 2 }}
-            src={profileData.avatar || undefined}
+            sx={{ width: 120, height: 120, mb: 2, cursor: isEditing ? "pointer" : "default" }}
+            src={avatarPreview || profileData.avatar || undefined}
             alt={`${profileData.first_name} ${profileData.last_name}`}
+            onClick={() => isEditing && fileInputRef.current?.click()}
           />
+          {isEditing && (
+            <input
+              type="file"
+              accept="image/*"
+              style={{ display: "none" }}
+              ref={fileInputRef}
+              onChange={handleAvatarChange}
+            />
+          )}
           <Typography variant="h4" component="h1" gutterBottom>
             {`${profileData.first_name} ${profileData.last_name}`}
           </Typography>
@@ -119,7 +146,7 @@ const Profile = () => {
             <TextField
               fullWidth
               label="First Name"
-              value={profileData.first_name}
+              value={profileData.first_name || ""}
               onChange={handleChange("first_name")}
               disabled={!isEditing}
               margin="normal"
@@ -129,7 +156,7 @@ const Profile = () => {
             <TextField
               fullWidth
               label="Last Name"
-              value={profileData.last_name}
+              value={profileData.last_name || ""}
               onChange={handleChange("last_name")}
               disabled={!isEditing}
               margin="normal"
@@ -139,7 +166,7 @@ const Profile = () => {
             <TextField
               fullWidth
               label="Email"
-              value={profileData.email}
+              value={profileData.email || ""}
               onChange={handleChange("email")}
               disabled={!isEditing}
               margin="normal"
@@ -149,7 +176,7 @@ const Profile = () => {
             <TextField
               fullWidth
               label="Phone"
-              value={profileData.phone}
+              value={profileData.phone || ""}
               onChange={handleChange("phone")}
               disabled={!isEditing}
               margin="normal"
