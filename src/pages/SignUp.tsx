@@ -12,15 +12,21 @@ import {
 import { useAuthStore } from "../store/authStore";
 import { useNavigate, Link as RouterLink } from "react-router-dom";
 
+interface ValidationErrors {
+  [key: string]: string[];
+}
+
 export default function SignUp() {
   const [formData, setFormData] = useState({
-    name: "",
+    first_name: "",
+    last_name: "",
     email: "",
     password: "",
     confirmPassword: "",
   });
-  const [error, setError] = useState("");
-  const login = useAuthStore((state) => state.login);
+  const [errors, setErrors] = useState<ValidationErrors>({});
+  const [generalError, setGeneralError] = useState("");
+  const signup = useAuthStore((state) => state.signup);
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -29,25 +35,55 @@ export default function SignUp() {
       ...prev,
       [name]: value,
     }));
+    // Clear field-specific error when user starts typing
+    if (errors[name]) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
+    setErrors({});
+    setGeneralError("");
 
     if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match");
+      setErrors({
+        confirmPassword: ["Passwords do not match"],
+      });
       return;
     }
 
     try {
-      // TODO: Replace with actual signup API call
-      // For now, we'll just log in the user
-      await login(formData.email, formData.password);
+      const { confirmPassword, ...signupData } = formData;
+      await signup(signupData);
       navigate("/");
     } catch (err) {
-      setError("Failed to create account");
+      if (err instanceof Error) {
+        // Check if the error message contains field-specific errors
+        if (err.message.includes(":")) {
+          const fieldErrors: ValidationErrors = {};
+          err.message.split("\n").forEach((line) => {
+            const [field, message] = line.split(": ");
+            if (field && message) {
+              fieldErrors[field] = [message];
+            }
+          });
+          setErrors(fieldErrors);
+        } else {
+          setGeneralError(err.message);
+        }
+      } else {
+        setGeneralError("An unexpected error occurred");
+      }
     }
+  };
+
+  const getFieldError = (fieldName: string) => {
+    return errors[fieldName]?.[0] || "";
   };
 
   return (
@@ -73,9 +109,9 @@ export default function SignUp() {
           <Typography component="h1" variant="h5">
             Sign up
           </Typography>
-          {error && (
+          {generalError && (
             <Alert severity="error" sx={{ width: "100%", mt: 2 }}>
-              {error}
+              {generalError}
             </Alert>
           )}
           <Box
@@ -87,13 +123,28 @@ export default function SignUp() {
               margin="normal"
               required
               fullWidth
-              id="name"
-              label="Full Name"
-              name="name"
-              autoComplete="name"
+              id="first_name"
+              label="First Name"
+              name="first_name"
+              autoComplete="given-name"
               autoFocus
-              value={formData.name}
+              value={formData.first_name}
               onChange={handleChange}
+              error={!!getFieldError("first_name")}
+              helperText={getFieldError("first_name")}
+            />
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              id="last_name"
+              label="Last Name"
+              name="last_name"
+              autoComplete="family-name"
+              value={formData.last_name}
+              onChange={handleChange}
+              error={!!getFieldError("last_name")}
+              helperText={getFieldError("last_name")}
             />
             <TextField
               margin="normal"
@@ -105,6 +156,8 @@ export default function SignUp() {
               autoComplete="email"
               value={formData.email}
               onChange={handleChange}
+              error={!!getFieldError("email")}
+              helperText={getFieldError("email")}
             />
             <TextField
               margin="normal"
@@ -117,6 +170,8 @@ export default function SignUp() {
               autoComplete="new-password"
               value={formData.password}
               onChange={handleChange}
+              error={!!getFieldError("password")}
+              helperText={getFieldError("password")}
             />
             <TextField
               margin="normal"
@@ -128,6 +183,8 @@ export default function SignUp() {
               id="confirmPassword"
               value={formData.confirmPassword}
               onChange={handleChange}
+              error={!!getFieldError("confirmPassword")}
+              helperText={getFieldError("confirmPassword")}
             />
             <Button
               type="submit"

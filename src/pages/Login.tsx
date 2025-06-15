@@ -25,9 +25,14 @@ export default function Login() {
 
     try {
       await login(email, password);
-      navigate("/"); // Redirect to home page after successful login
+      // navigate("/"); // Redirect to home page after successful login
     } catch (err) {
-      setError("Invalid email or password");
+      console.log(err);
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("An unexpected error occurred");
+      }
     }
   };
 
