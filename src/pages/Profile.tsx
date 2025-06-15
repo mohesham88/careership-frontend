@@ -10,6 +10,7 @@ import {
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import { Edit as EditIcon, Save as SaveIcon } from "@mui/icons-material";
+import api from "../services/api";
 
 interface ProfileData {
   first_name: string;
@@ -36,13 +37,8 @@ const Profile = () => {
   useEffect(() => {
     const fetchProfileData = async () => {
       try {
-        const response = await fetch('http://localhost:8000/api/v1/auth/profile', {
-          // headers: {
-          //   'Authorization': `Bearer ${localStorage.getItem('token')}`
-          // }
-        });
-        const data = await response.json();
-        setProfileData(data);
+        const response = await api.get("/auth/profile/");
+        setProfileData(response.data);
       } catch (error) {
         console.error('Error fetching profile data:', error);
       }
