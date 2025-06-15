@@ -35,6 +35,10 @@ const protectedRoutes = [
     path: "/",
     element: <div>Home Page</div>,
   },
+  {
+    path: "/profile",
+    element: <Profile />,
+  },
   // Add more protected routes here
   // Example:
   // {
