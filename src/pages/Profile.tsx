@@ -34,18 +34,20 @@ const Profile = () => {
   });
 
   useEffect(() => {
-    // TODO: Fetch profile data from backend
-    // Example:
-    // const fetchProfileData = async () => {
-    //   try {
-    //     const response = await fetch('/api/profile');
-    //     const data = await response.json();
-    //     setProfileData(data);
-    //   } catch (error) {
-    //     console.error('Error fetching profile data:', error);
-    //   }
-    // };
-    // fetchProfileData();
+    const fetchProfileData = async () => {
+      try {
+        const response = await fetch('http://localhost:8000/api/v1/auth/profile', {
+          // headers: {
+          //   'Authorization': `Bearer ${localStorage.getItem('token')}`
+          // }
+        });
+        const data = await response.json();
+        setProfileData(data);
+      } catch (error) {
+        console.error('Error fetching profile data:', error);
+      }
+    };
+    fetchProfileData();
   }, []);
 
   const handleEdit = () => {
