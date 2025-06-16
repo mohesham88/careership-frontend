@@ -9,6 +9,7 @@ import { ThemeProvider, CssBaseline, Box } from "@mui/material";
 import { createTheme } from "@mui/material/styles";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
+import Profile from "./pages/Profile";
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./utils/ProtectedRoute";
 import { useThemeStore } from "./store/themeStore";
@@ -33,6 +34,10 @@ const protectedRoutes = [
   {
     path: "/",
     element: <div>Home Page</div>,
+  },
+  {
+    path: "/profile",
+    element: <Profile />,
   },
   // Add more protected routes here
   // Example:

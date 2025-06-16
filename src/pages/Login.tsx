@@ -25,7 +25,7 @@ export default function Login() {
 
     try {
       await login(email, password);
-      // navigate("/"); // Redirect to home page after successful login
+      navigate("/"); // Redirect to home page after successful login
     } catch (err) {
       console.log(err);
       if (err instanceof Error) {
