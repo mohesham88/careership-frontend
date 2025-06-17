@@ -81,9 +81,10 @@ export default function ProjectDetail() {
                         <h2 className="text-xl font-semibold mb-4">Tasks</h2>
                         <div className="space-y-4">
                             {project.tasks.map((task) => (
-                                <div
+                                <Link
                                     key={task.id}
-                                    className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                                    to={`/projects/${project.id}/tasks/${task.id}`}
+                                    className="block border rounded-lg p-4 hover:bg-gray-50 transition-colors"
                                 >
                                     <div className="flex justify-between items-center">
                                         <h3 className="text-lg font-medium">{task.name}</h3>
@@ -94,7 +95,7 @@ export default function ProjectDetail() {
                                     <p className="text-gray-600 text-sm mt-2">
                                         Created: {task.created_at}
                                     </p>
-                                </div>
+                                </Link>
                             ))}
                         </div>
                     </div>
