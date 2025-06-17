@@ -12,6 +12,7 @@ import SignUp from "./pages/SignUp";
 import Profile from "./pages/Profile";
 import Projects from "./pages/Projects";
 import ProjectDetail from "./pages/ProjectDetail";
+import TaskDetail from "./pages/TaskDetail";
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./utils/ProtectedRoute";
 import { useThemeStore } from "./store/themeStore";
@@ -48,6 +49,10 @@ const protectedRoutes = [
   {
     path: "/projects/:id",
     element: <ProjectDetail />,
+  },
+  {
+    path: "/projects/:projectId/tasks/:taskId",
+    element: <TaskDetail />,
   },
   // Add more protected routes here
   // Example:
