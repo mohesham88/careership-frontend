@@ -10,6 +10,8 @@ import { createTheme } from "@mui/material/styles";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
 import Profile from "./pages/Profile";
+import Projects from "./pages/Projects";
+import ProjectDetail from "./pages/ProjectDetail";
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./utils/ProtectedRoute";
 import { useThemeStore } from "./store/themeStore";
@@ -38,6 +40,14 @@ const protectedRoutes = [
   {
     path: "/profile",
     element: <Profile />,
+  },
+  {
+    path: "/projects",
+    element: <Projects />,
+  },
+  {
+    path: "/projects/:id",
+    element: <ProjectDetail />,
   },
   // Add more protected routes here
   // Example:
