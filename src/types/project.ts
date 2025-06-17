@@ -2,6 +2,9 @@ export interface Task {
     id: number;
     name: string;
     slug: string;
+    description: string;
+    duration_in_days: number;
+    tests: string[];
     difficulty_level: string;
     created_at: string;
 }
