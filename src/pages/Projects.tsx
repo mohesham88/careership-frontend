@@ -1,69 +1,90 @@
-import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import type { Project } from '../types/project';
-import api from '../services/api';
+import {
+  Container,
+  Card,
+  CardContent,
+  Typography,
+  Box,
+  Skeleton,
+  Alert,
+  Grid,
+} from "@mui/material";
+
+import type { Project } from "../types/project";
+import ProjectCard from "../components/ProjectCard";
+import { useProjects } from "../hooks/useProject";
 
 export default function Projects() {
-    const [projects, setProjects] = useState<Project[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+  const { data: projects, isLoading, error } = useProjects();
 
-    useEffect(() => {
-        const fetchProjects = async () => {
-            try {
-                const response = await api.get("/projects/");
-                setProjects(response.data.results);
-                setLoading(false);
-            } catch (err) {
-                setError('Failed to load projects');
-                setLoading(false);
-            }
-        };
+  // will be displayed when the page is loading
+  const renderSkeletonCards = () => (
+    <Grid container spacing={3}>
+      {[...Array(6)].map((_, index) => (
+        <Grid size={{ xs: 12, sm: 6, md: 4 }} key={index}>
+          <Card sx={{ height: "100%" }}>
+            <CardContent>
+              <Skeleton variant="text" width="60%" height={32} />
+              <Skeleton variant="text" width="40%" height={24} sx={{ mb: 1 }} />
+              <Skeleton variant="text" width="100%" height={20} />
+              <Skeleton variant="text" width="80%" height={20} />
+              <Box sx={{ mt: 2 }}>
+                <Skeleton variant="rectangular" width="60%" height={24} />
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+      ))}
+    </Grid>
+  );
 
-        fetchProjects();
-    }, []);
-
-    if (loading) {
-        return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
-    }
-
-    if (error) {
-        return <div className="text-red-500 text-center">{error}</div>;
-    }
-
+  if (isLoading) {
     return (
-        <div className="container mx-auto px-4 py-8">
-            <h1 className="text-3xl font-bold mb-8">Projects</h1>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {projects.map((project) => (
-                    <Link
-                        key={project.id}
-                        to={`/projects/${project.id}`}
-                        className="block p-6 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow"
-                    >
-                        <div className="flex justify-between items-start mb-4">
-                            <h2 className="text-xl font-semibold">{project.name}</h2>
-                            {project.is_premium && (
-                                <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm">
-                                    Premium
-                                </span>
-                            )}
-                        </div>
-                        <div className="space-y-2">
-                            <p className="text-gray-600">{project.description || 'No description available'}</p>
-                            <div className="flex items-center gap-4 text-sm text-gray-500">
-                                <span>Difficulty: {project.difficulty_level}</span>
-                                <span>Team Size: {project.max_team_size}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
-                                    {project.category}
-                                </span>
-                            </div>
-                        </div>
-                    </Link>
-                ))}
-            </div>
-        </div>
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        <Typography variant="h4" component="h1" gutterBottom>
+          Projects
+        </Typography>
+        {renderSkeletonCards()}
+      </Container>
     );
-} 
+  }
+
+  if (error) {
+    return (
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        <Alert severity="error" sx={{ mb: 3 }}>
+          Failed to load projects
+        </Alert>
+      </Container>
+    );
+  }
+
+  return (
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h4" component="h1" gutterBottom>
+          Explore Projects
+        </Typography>
+        <Typography variant="body1" color="text.secondary">
+          Discover amazing projects and start your next adventure
+        </Typography>
+      </Box>
+
+      <Grid container spacing={3}>
+        {projects?.map((project: Project) => (
+          <ProjectCard key={project.id} project={project} />
+        ))}
+      </Grid>
+
+      {projects?.length === 0 && !isLoading && (
+        <Box sx={{ textAlign: "center", py: 8 }}>
+          <Typography variant="h6" color="text.secondary" gutterBottom>
+            No projects available
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Check back later for new projects
+          </Typography>
+        </Box>
+      )}
+    </Container>
+  );
+}

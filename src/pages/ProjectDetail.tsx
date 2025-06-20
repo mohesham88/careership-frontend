@@ -1,106 +1,321 @@
-import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import type { Project } from '../types/project';
-import api from '../services/api';
+import { useParams, Link } from "react-router-dom";
+import {
+  Container,
+  Typography,
+  Box,
+  Card,
+  CardContent,
+  Chip,
+  Grid,
+  Skeleton,
+  Alert,
+  Button,
+  Avatar,
+  Paper,
+  Breadcrumbs,
+} from "@mui/material";
+import {
+  ArrowBack as ArrowBackIcon,
+  Star as StarIcon,
+  Group as GroupIcon,
+  TrendingUp as TrendingUpIcon,
+  Category as CategoryIcon,
+  Schedule as ScheduleIcon,
+  Assignment as AssignmentIcon,
+} from "@mui/icons-material";
+import type { Project, Task } from "../types/project";
+import { difficultyColors, categoryColors } from "../constants/projects";
+import { taskStatusColors } from "../constants/tasks";
+import { useProjectById } from "../hooks/useProject";
 
 export default function ProjectDetail() {
-    const { id } = useParams<{ id: string }>();
-    const [project, setProject] = useState<Project | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+  const { id } = useParams<{ id: string }>();
+  const { data: project, isLoading, error } = useProjectById(id || "");
 
-    useEffect(() => {
-        const fetchProject = async () => {
-            if (!id) return;
-            try {
-                const response = await api.get(`/projects/${id}/`);
-                setProject(response.data);
-                setLoading(false);
-            } catch (err) {
-                setError('Failed to load project');
-                setLoading(false);
-            }
-        };
+  const renderSkeleton = () => (
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Skeleton variant="text" width={200} height={32} sx={{ mb: 2 }} />
+      <Skeleton
+        variant="rectangular"
+        width="100%"
+        height={400}
+        sx={{ mb: 3 }}
+      />
+      <Grid container spacing={3}>
+        <Grid size={{ xs: 12, md: 8 }}>
+          <Skeleton variant="text" width="60%" height={48} sx={{ mb: 2 }} />
+          <Skeleton variant="text" width="100%" height={24} sx={{ mb: 1 }} />
+          <Skeleton variant="text" width="80%" height={24} sx={{ mb: 3 }} />
+          <Skeleton variant="rectangular" width="100%" height={200} />
+        </Grid>
+        <Grid size={{ xs: 12, md: 4 }}>
+          <Skeleton variant="rectangular" width="100%" height={300} />
+        </Grid>
+      </Grid>
+    </Container>
+  );
 
-        fetchProject();
-    }, [id]);
+  if (isLoading) {
+    return renderSkeleton();
+  }
 
-    if (loading) {
-        return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
-    }
-
-    if (error || !project) {
-        return <div className="text-red-500 text-center">{error || 'Project not found'}</div>;
-    }
-
+  if (error || !project) {
     return (
-        <div className="container mx-auto px-4 py-8">
-            <div className="max-w-4xl mx-auto">
-                <div className="mb-8">
-                    <Link to="/projects" className="text-blue-600 hover:text-blue-800">
-                        ← Back to Projects
-                    </Link>
-                </div>
-
-                <div className="bg-white rounded-lg shadow-md p-6">
-                    <div className="flex justify-between items-start mb-6">
-                        <h1 className="text-3xl font-bold">{project.name}</h1>
-                        {project.is_premium && (
-                            <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full">
-                                Premium
-                            </span>
-                        )}
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                        <div>
-                            <h2 className="text-xl font-semibold mb-4">Project Details</h2>
-                            <div className="space-y-3">
-                                <p className="text-gray-600">
-                                    {project.description || 'No description available'}
-                                </p>
-                                <div className="flex items-center gap-4">
-                                    <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full">
-                                        {project.category}
-                                    </span>
-                                    <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full">
-                                        {project.difficulty_level}
-                                    </span>
-                                </div>
-                                <p className="text-gray-600">
-                                    Team Size: {project.max_team_size} members
-                                </p>
-                                <p className="text-gray-600">
-                                    Created: {project.created_at}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <h2 className="text-xl font-semibold mb-4">Tasks</h2>
-                        <div className="space-y-4">
-                            {project.tasks.map((task) => (
-                                <Link
-                                    key={task.id}
-                                    to={`/projects/${project.id}/tasks/${task.id}`}
-                                    className="block border rounded-lg p-4 hover:bg-gray-50 transition-colors"
-                                >
-                                    <div className="flex justify-between items-center">
-                                        <h3 className="text-lg font-medium">{task.name}</h3>
-                                        <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-sm">
-                                            {task.difficulty_level}
-                                        </span>
-                                    </div>
-                                    <p className="text-gray-600 text-sm mt-2">
-                                        Created: {task.created_at}
-                                    </p>
-                                </Link>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        <Alert severity="error" sx={{ mb: 3 }}>
+          Failed to load project
+        </Alert>
+      </Container>
     );
-} 
+  }
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
+  return (
+    <Container maxWidth="lg" sx={{ py: 2 }}>
+      {/* Breadcrumbs */}
+      <Breadcrumbs sx={{ mb: 3 }}>
+        <Link
+          to="/projects"
+          style={{ textDecoration: "none", color: "inherit" }}
+        >
+          <Typography color="text.secondary">Projects</Typography>
+        </Link>
+        <Typography color="text.primary">{project.name}</Typography>
+      </Breadcrumbs>
+
+      {/* Project Header */}
+      <Paper elevation={2} sx={{ p: 4, mb: 4 }}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "flex-start",
+            justifyContent: "space-between",
+            mb: 3,
+          }}
+        >
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <Avatar
+              sx={{
+                width: 64,
+                height: 64,
+                bgcolor: "primary.main",
+                fontSize: "1.5rem",
+              }}
+            >
+              {project.name.charAt(0).toUpperCase()}
+            </Avatar>
+            <Box>
+              <Typography variant="h4" component="h1" gutterBottom>
+                {project.name}
+              </Typography>
+              <Box
+                sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}
+              >
+                <CategoryIcon color="action" sx={{ fontSize: 20 }} />
+                <Chip
+                  label={project.category}
+                  color={
+                    categoryColors[
+                      project.category as keyof typeof categoryColors
+                    ] || "default"
+                  }
+                  size="small"
+                  variant="outlined"
+                />
+              </Box>
+            </Box>
+          </Box>
+          {project.is_premium && (
+            <Chip
+              icon={<StarIcon />}
+              label="Premium"
+              color="warning"
+              variant="filled"
+              size="small"
+            />
+          )}
+        </Box>
+
+        <Typography
+          variant="body1"
+          color="text.secondary"
+          sx={{ mb: 3, lineHeight: 1.6 }}
+        >
+          {project.description || "No description available"}
+        </Typography>
+
+        <Grid container spacing={2}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <TrendingUpIcon color="action" />
+              <Typography variant="body2" color="text.secondary">
+                Difficulty:
+              </Typography>
+              <Chip
+                label={project.difficulty_level}
+                color={
+                  difficultyColors[
+                    project.difficulty_level as keyof typeof difficultyColors
+                  ] || "default"
+                }
+                size="small"
+              />
+            </Box>
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <GroupIcon color="action" />
+              <Typography variant="body2" color="text.secondary">
+                Team Size: {project.max_team_size}
+              </Typography>
+            </Box>
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <AssignmentIcon color="action" />
+              <Typography variant="body2" color="text.secondary">
+                Tasks: {project.tasks?.length || 0}
+              </Typography>
+            </Box>
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <ScheduleIcon color="action" />
+              <Typography variant="body2" color="text.secondary">
+                Created: {formatDate(project.created_at)}
+              </Typography>
+            </Box>
+          </Grid>
+        </Grid>
+      </Paper>
+
+      {/* Tasks Section */}
+      <Paper elevation={2} sx={{ p: 4 }}>
+        <Typography
+          variant="h5"
+          component="h2"
+          gutterBottom
+          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+        >
+          <AssignmentIcon />
+          Project Tasks
+        </Typography>
+
+        {project.tasks && project.tasks.length > 0 ? (
+          <Grid container spacing={2}>
+            {project.tasks.map((task: Task) => (
+              <Grid size={{ xs: 12 }} key={task.id}>
+                <Card
+                  sx={{
+                    transition: "all 0.3s ease-in-out",
+                    "&:hover": {
+                      transform: "translateY(-2px)",
+                      boxShadow: 3,
+                    },
+                  }}
+                  component={Link}
+                  to={`/projects/${project.id}/tasks/${task.id}`}
+                  style={{ textDecoration: "none" }}
+                >
+                  <CardContent>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "flex-start",
+                        mb: 2,
+                      }}
+                    >
+                      <Box>
+                        <Typography variant="h6" component="h3" gutterBottom>
+                          {task.name}
+                        </Typography>
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          sx={{ mb: 2 }}
+                        >
+                          {task.description || "No description available"}
+                        </Typography>
+                      </Box>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "flex-end",
+                          gap: 1,
+                        }}
+                      >
+                        <Chip
+                          label={task.difficulty_level}
+                          color={
+                            difficultyColors[
+                              task.difficulty_level as keyof typeof difficultyColors
+                            ] || "default"
+                          }
+                          size="small"
+                        />
+                        {/* {task.status && (
+                          <Chip
+                            label={task.status}
+                            color={
+                              taskStatusColors[
+                                task.isFinished as keyof typeof taskStatusColors
+                              ] || "default"
+                            }
+                            size="small"
+                            variant="outlined"
+                          />
+                        )} */}
+                      </Box>
+                    </Box>
+
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                      <Typography variant="caption" color="text.secondary">
+                        Created: {formatDate(task.created_at)}
+                      </Typography>
+                      {/* {task.due_date && (
+                        <Typography variant="caption" color="text.secondary">
+                          Due: {formatDate(task.due_date)}
+                        </Typography>
+                      )} */}
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+        ) : (
+          <Box sx={{ textAlign: "center", py: 4 }}>
+            <Typography variant="h6" color="text.secondary" gutterBottom>
+              No tasks available
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Tasks will appear here once they are added to the project
+            </Typography>
+          </Box>
+        )}
+      </Paper>
+
+      {/* Back Button */}
+      <Box sx={{ mt: 4, textAlign: "center" }}>
+        <Button
+          component={Link}
+          to="/projects"
+          variant="outlined"
+          startIcon={<ArrowBackIcon />}
+          size="large"
+        >
+          Back to Projects
+        </Button>
+      </Box>
+    </Container>
+  );
+}
