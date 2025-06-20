@@ -13,6 +13,7 @@ import {
   Avatar,
   Paper,
   Breadcrumbs,
+  Snackbar,
 } from "@mui/material";
 import {
   ArrowBack as ArrowBackIcon,
@@ -22,15 +23,24 @@ import {
   Category as CategoryIcon,
   Schedule as ScheduleIcon,
   Assignment as AssignmentIcon,
+  School as SchoolIcon,
+  CheckCircle as CheckCircleIcon,
 } from "@mui/icons-material";
 import type { Project, Task } from "../types/project";
 import { difficultyColors, categoryColors } from "../constants/projects";
 import { taskStatusColors } from "../constants/tasks";
-import { useProjectById } from "../hooks/useProject";
+import { useProjectById } from "../hooks/useProjectHooks";
+import { useCertificateAvailability, useRequestCertificate } from "../hooks/useCertificateHooks";
+import { useState } from "react";
 
 export default function ProjectDetail() {
   const { id } = useParams<{ id: string }>();
   const { data: project, isLoading, error } = useProjectById(id || "");
+  const { data: certificateData, isLoading: certificateLoading } =
+    useCertificateAvailability(Number(id));
+  const [showCertificateNotification, setShowCertificateNotification] =
+    useState(false);
+  const requestCertificateMutation = useRequestCertificate();
 
   const renderSkeleton = () => (
     <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -74,7 +84,12 @@ export default function ProjectDetail() {
       year: "numeric",
       month: "long",
       day: "numeric",
-    });
+    }); 
+  };
+
+  const handleRequestCertificate = () => {
+    requestCertificateMutation.mutate(project.id);
+    setShowCertificateNotification(true);
   };
 
   return (
@@ -89,6 +104,30 @@ export default function ProjectDetail() {
         </Link>
         <Typography color="text.primary">{project.name}</Typography>
       </Breadcrumbs>
+
+      {/* Certificate Availability Notification */}
+      {!certificateLoading && certificateData && (
+        <Alert
+          severity="info"
+          icon={<SchoolIcon />}
+          action={
+            <Button
+              color="inherit"
+              size="small"
+              onClick={handleRequestCertificate}
+              startIcon={<CheckCircleIcon />}
+            >
+              Request Certificate
+            </Button>
+          }
+          sx={{ mb: 3 }}
+        >
+          <Typography variant="body2">
+            You can obtain a certificate for completing this project! Click the
+            button to request your certificate.
+          </Typography>
+        </Alert>
+      )}
 
       {/* Project Header */}
       <Paper elevation={2} sx={{ p: 4, mb: 4 }}>
@@ -316,6 +355,14 @@ export default function ProjectDetail() {
           Back to Projects
         </Button>
       </Box>
+
+      {/* Certificate Request Success Notification */}
+      <Snackbar
+        open={showCertificateNotification}
+        autoHideDuration={6000}
+        onClose={() => setShowCertificateNotification(false)}
+        message="Certificate request submitted successfully!"
+      />
     </Container>
   );
 }
