@@ -19,6 +19,7 @@ import { useThemeStore } from "./store/themeStore";
 import { useAuthStore } from "./store/authStore";
 import NotFound from "./pages/NotFound";
 import { PublicRoute } from "./utils/PublicRoute";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 // Public routes that don't require authentication
 const publicRoutes = [
@@ -73,40 +74,48 @@ function App() {
     },
   });
 
+  const queryClient = new QueryClient();
+
   return (
     <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <Router>
-        <Box
-          sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}
-        >
-          <Navbar darkMode={darkMode} onDarkModeToggle={toggleDarkMode} />
-          <Box component="main" sx={{ flexGrow: 1 }}>
-            <Routes>
-              {/* Public Routes */}
-              {publicRoutes.map((route) => (
-                <Route
-                  key={route.path}
-                  path={route.path}
-                  element={<PublicRoute>{route.element}</PublicRoute>}
-                />
-              ))}
+      <QueryClientProvider client={queryClient}>
+        <CssBaseline />
+        <Router>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              minHeight: "100vh",
+            }}
+          >
+            <Navbar darkMode={darkMode} onDarkModeToggle={toggleDarkMode} />
+            <Box component="main" sx={{ flexGrow: 1 }}>
+              <Routes>
+                {/* Public Routes */}
+                {publicRoutes.map((route) => (
+                  <Route
+                    key={route.path}
+                    path={route.path}
+                    element={<PublicRoute>{route.element}</PublicRoute>}
+                  />
+                ))}
 
-              {/* Protected Routes */}
-              {protectedRoutes.map((route) => (
-                <Route
-                  key={route.path}
-                  path={route.path}
-                  element={<ProtectedRoute>{route.element}</ProtectedRoute>}
-                />
-              ))}
+                {/* Protected Routes */}
+                {protectedRoutes.map((route) => (
+                  <Route
+                    key={route.path}
+                    path={route.path}
+                    element={<ProtectedRoute>{route.element}</ProtectedRoute>}
+                  />
+                ))}
 
-              {/* Catch all route - redirect to NotFound */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+                {/* Catch all route - redirect to NotFound */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Box>
           </Box>
-        </Box>
-      </Router>
+        </Router>
+      </QueryClientProvider>
     </ThemeProvider>
   );
 }

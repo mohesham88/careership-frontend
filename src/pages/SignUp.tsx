@@ -8,9 +8,10 @@ import {
   Paper,
   Alert,
   Link,
+  CircularProgress,
 } from "@mui/material";
-import { useAuthStore } from "../store/authStore";
 import { useNavigate, Link as RouterLink } from "react-router-dom";
+import { useSignup } from "../hooks/useAuth";
 
 interface ValidationErrors {
   [key: string]: string[];
@@ -25,9 +26,8 @@ export default function SignUp() {
     confirmPassword: "",
   });
   const [errors, setErrors] = useState<ValidationErrors>({});
-  const [generalError, setGeneralError] = useState("");
-  const signup = useAuthStore((state) => state.signup);
   const navigate = useNavigate();
+  const signupMutation = useSignup();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -48,7 +48,6 @@ export default function SignUp() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
-    setGeneralError("");
 
     if (formData.password !== formData.confirmPassword) {
       setErrors({
@@ -59,7 +58,7 @@ export default function SignUp() {
 
     try {
       const { confirmPassword, ...signupData } = formData;
-      await signup(signupData);
+      await signupMutation.mutateAsync(signupData);
       navigate("/");
     } catch (err) {
       if (err instanceof Error) {
@@ -73,11 +72,7 @@ export default function SignUp() {
             }
           });
           setErrors(fieldErrors);
-        } else {
-          setGeneralError(err.message);
         }
-      } else {
-        setGeneralError("An unexpected error occurred");
       }
     }
   };
@@ -109,9 +104,9 @@ export default function SignUp() {
           <Typography component="h1" variant="h5">
             Sign up
           </Typography>
-          {generalError && (
+          {signupMutation.error && !Object.keys(errors).length && (
             <Alert severity="error" sx={{ width: "100%", mt: 2 }}>
-              {generalError}
+              {signupMutation.error.message}
             </Alert>
           )}
           <Box
@@ -132,6 +127,7 @@ export default function SignUp() {
               onChange={handleChange}
               error={!!getFieldError("first_name")}
               helperText={getFieldError("first_name")}
+              disabled={signupMutation.isPending}
             />
             <TextField
               margin="normal"
@@ -145,6 +141,7 @@ export default function SignUp() {
               onChange={handleChange}
               error={!!getFieldError("last_name")}
               helperText={getFieldError("last_name")}
+              disabled={signupMutation.isPending}
             />
             <TextField
               margin="normal"
@@ -158,6 +155,7 @@ export default function SignUp() {
               onChange={handleChange}
               error={!!getFieldError("email")}
               helperText={getFieldError("email")}
+              disabled={signupMutation.isPending}
             />
             <TextField
               margin="normal"
@@ -172,6 +170,7 @@ export default function SignUp() {
               onChange={handleChange}
               error={!!getFieldError("password")}
               helperText={getFieldError("password")}
+              disabled={signupMutation.isPending}
             />
             <TextField
               margin="normal"
@@ -185,14 +184,20 @@ export default function SignUp() {
               onChange={handleChange}
               error={!!getFieldError("confirmPassword")}
               helperText={getFieldError("confirmPassword")}
+              disabled={signupMutation.isPending}
             />
             <Button
               type="submit"
               fullWidth
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
+              disabled={signupMutation.isPending}
             >
-              Sign Up
+              {signupMutation.isPending ? (
+                <CircularProgress size={24} color="inherit" />
+              ) : (
+                "Sign Up"
+              )}
             </Button>
             <Box sx={{ textAlign: "center" }}>
               <Link component={RouterLink} to="/login" variant="body2">
