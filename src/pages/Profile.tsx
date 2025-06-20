@@ -43,7 +43,7 @@ const Profile = () => {
         const response = await api.get("/auth/profile/");
         setProfileData(response.data);
       } catch (error) {
-        console.error('Error fetching profile data:', error);
+        console.error("Error fetching profile data:", error);
       }
     };
     fetchProfileData();
@@ -66,10 +66,13 @@ const Profile = () => {
   };
 
   const formData = new FormData();
-  if (profileData.first_name) formData.append("first_name", profileData.first_name);
-  if (profileData.last_name) formData.append("last_name", profileData.last_name);
+  if (profileData.first_name)
+    formData.append("first_name", profileData.first_name);
+  if (profileData.last_name)
+    formData.append("last_name", profileData.last_name);
   if (profileData.email) formData.append("email", profileData.email);
-  if (profileData.user_type) formData.append("user_type", profileData.user_type);
+  if (profileData.user_type)
+    formData.append("user_type", profileData.user_type);
   if (profileData.phone) formData.append("phone", profileData.phone);
   if (avatarFile) formData.append("avatar", avatarFile);
 
@@ -80,23 +83,37 @@ const Profile = () => {
         headers: { "Content-Type": "multipart/form-data" },
       });
     } catch (error) {
-      console.error('Error saving profile data:', error);
+      console.error("Error saving profile data:", error);
     }
   };
 
-  const handleChange = (field: keyof ProfileData) => (event: React.ChangeEvent<HTMLInputElement>) => {
-    setProfileData({
-      ...profileData,
-      [field]: event.target.value,
-    });
-  };
+  const handleChange =
+    (field: keyof ProfileData) =>
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setProfileData({
+        ...profileData,
+        [field]: event.target.value,
+      });
+    };
 
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
       <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }}>
-        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", mb: 4 }}>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            mb: 4,
+          }}
+        >
           <Avatar
-            sx={{ width: 120, height: 120, mb: 2, cursor: isEditing ? "pointer" : "default" }}
+            sx={{
+              width: 120,
+              height: 120,
+              mb: 2,
+              cursor: isEditing ? "pointer" : "default",
+            }}
             src={avatarPreview || profileData.avatar || undefined}
             alt={`${profileData.first_name} ${profileData.last_name}`}
             onClick={() => isEditing && fileInputRef.current?.click()}
@@ -119,7 +136,7 @@ const Profile = () => {
         </Box>
 
         <Grid container spacing={3}>
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
               {isEditing ? (
                 <Button
@@ -142,7 +159,7 @@ const Profile = () => {
             </Box>
           </Grid>
 
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <TextField
               fullWidth
               label="First Name"
@@ -152,7 +169,7 @@ const Profile = () => {
               margin="normal"
             />
           </Grid>
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <TextField
               fullWidth
               label="Last Name"
@@ -162,7 +179,7 @@ const Profile = () => {
               margin="normal"
             />
           </Grid>
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <TextField
               fullWidth
               label="Email"
@@ -172,7 +189,7 @@ const Profile = () => {
               margin="normal"
             />
           </Grid>
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <TextField
               fullWidth
               label="Phone"
@@ -188,4 +205,4 @@ const Profile = () => {
   );
 };
 
-export default Profile; 
+export default Profile;
