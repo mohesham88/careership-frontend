@@ -12,6 +12,10 @@ const getProject = async (id: string) => {
   return response.data;
 };
 
+
+
+
+
 export const useProjects = (): UseQueryResult<Project[], Error> => {
   return useQuery({
     queryKey: ["projects"],
@@ -23,5 +27,7 @@ export const useProjectById = (id: string): UseQueryResult<Project, Error> => {
   return useQuery({
     queryKey: ["project", id],
     queryFn: () => getProject(id),
+    enabled: !!id,
   });
 };
+
