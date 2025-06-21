@@ -26,14 +26,14 @@ import {
   School as SchoolIcon,
   CheckCircle as CheckCircleIcon,
 } from "@mui/icons-material";
-import type { Project, Task } from "../types/project";
-import { difficultyColors, categoryColors } from "../constants/projects";
-import { taskStatusColors } from "../constants/tasks";
-import { useProjectById } from "../hooks/useProjectHooks";
+import type { Project, Task } from "../../types/project";
+import { difficultyColors, categoryColors } from "../../constants/projects";
+import { taskStatusColors } from "../../constants/tasks";
+import { useProjectById } from "../../hooks/useProjectHooks";
 import {
   useCertificateAvailability,
   useRequestCertificate,
-} from "../hooks/useCertificateHooks";
+} from "../../hooks/useCertificateHooks";
 import { useState } from "react";
 
 export default function ProjectDetail() {
