@@ -8,31 +8,26 @@ import {
   Paper,
   Alert,
   Link,
+  CircularProgress,
 } from "@mui/material";
-import { useAuthStore } from "../store/authStore";
 import { useNavigate, Link as RouterLink } from "react-router-dom";
+import { useLogin } from "../hooks/useAuth";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const login = useAuthStore((state) => state.login);
   const navigate = useNavigate();
+  const loginMutation = useLogin();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
 
     try {
-      await login(email, password);
+      await loginMutation.mutateAsync({ email, password });
       navigate("/"); // Redirect to home page after successful login
     } catch (err) {
-      console.log(err);
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("An unexpected error occurred");
-      }
+      // Error is handled by the mutation
+      console.error("Login error:", err);
     }
   };
 
@@ -59,9 +54,9 @@ export default function Login() {
           <Typography component="h1" variant="h5">
             Sign in
           </Typography>
-          {error && (
+          {loginMutation.error && (
             <Alert severity="error" sx={{ width: "100%", mt: 2 }}>
-              {error}
+              {loginMutation.error.message}
             </Alert>
           )}
           <Box
@@ -80,6 +75,7 @@ export default function Login() {
               autoFocus
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              disabled={loginMutation.isPending}
             />
             <TextField
               margin="normal"
@@ -92,14 +88,20 @@ export default function Login() {
               autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              disabled={loginMutation.isPending}
             />
             <Button
               type="submit"
               fullWidth
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
+              disabled={loginMutation.isPending}
             >
-              Sign In
+              {loginMutation.isPending ? (
+                <CircularProgress size={24} color="inherit" />
+              ) : (
+                "Sign In"
+              )}
             </Button>
             <Box sx={{ textAlign: "center" }}>
               <Link component={RouterLink} to="/signup" variant="body2">
