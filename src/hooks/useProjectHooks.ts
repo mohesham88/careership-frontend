@@ -7,7 +7,7 @@ const getProjects = async () => {
   return response.data.results;
 };
 
-const getProject = async (id: string) => {
+const getProject = async (id: number) => {
   const response = await api.get(`/projects/${id}/`);
   return response.data;
 };
@@ -23,7 +23,7 @@ export const useProjects = (): UseQueryResult<Project[], Error> => {
   });
 };
 
-export const useProjectById = (id: string): UseQueryResult<Project, Error> => {
+export const useProjectById = (id: number): UseQueryResult<Project, Error> => {
   return useQuery({
     queryKey: ["project", id],
     queryFn: () => getProject(id),

@@ -30,12 +30,15 @@ import type { Project, Task } from "../types/project";
 import { difficultyColors, categoryColors } from "../constants/projects";
 import { taskStatusColors } from "../constants/tasks";
 import { useProjectById } from "../hooks/useProjectHooks";
-import { useCertificateAvailability, useRequestCertificate } from "../hooks/useCertificateHooks";
+import {
+  useCertificateAvailability,
+  useRequestCertificate,
+} from "../hooks/useCertificateHooks";
 import { useState } from "react";
 
 export default function ProjectDetail() {
   const { id } = useParams<{ id: string }>();
-  const { data: project, isLoading, error } = useProjectById(id || "");
+  const { data: project, isLoading, error } = useProjectById(Number(id));
   const { data: certificateData, isLoading: certificateLoading } =
     useCertificateAvailability(Number(id));
   const [showCertificateNotification, setShowCertificateNotification] =
@@ -84,7 +87,7 @@ export default function ProjectDetail() {
       year: "numeric",
       month: "long",
       day: "numeric",
-    }); 
+    });
   };
 
   const handleRequestCertificate = () => {
