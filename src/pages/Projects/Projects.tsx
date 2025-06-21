@@ -9,9 +9,9 @@ import {
   Grid,
 } from "@mui/material";
 
-import type { Project } from "../types/project";
-import ProjectCard from "../components/ProjectCard";
-import { useProjects } from "../hooks/useProjectHooks";
+import type { Project } from "../../types/project";
+import ProjectCard from "../../components/ProjectCard";
+import { useProjects } from "../../hooks/useProjectHooks";
 
 export default function Projects() {
   const { data: projects, isLoading, error } = useProjects();

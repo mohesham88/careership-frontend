@@ -11,7 +11,7 @@ import {
   CircularProgress,
 } from "@mui/material";
 import { useNavigate, Link as RouterLink } from "react-router-dom";
-import { useSignup } from "../hooks/useAuth";
+import { useSignup } from "../../hooks/useAuth";
 
 interface ValidationErrors {
   [key: string]: string[];

@@ -7,11 +7,11 @@ import {
 } from "react-router-dom";
 import { ThemeProvider, CssBaseline, Box } from "@mui/material";
 import { createTheme } from "@mui/material/styles";
-import Login from "./pages/Login";
-import SignUp from "./pages/SignUp";
-import Profile from "./pages/Profile";
-import Projects from "./pages/Projects";
-import ProjectDetail from "./pages/ProjectDetail";
+import Login from "./pages/Users/Login";
+import SignUp from "./pages/Users/SignUp";
+import Profile from "./pages/Users/Profile";
+import Projects from "./pages/Projects/Projects";
+import ProjectDetail from "./pages/Projects/ProjectDetail";
 import TaskDetail from "./pages/TaskDetail";
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./utils/ProtectedRoute";
@@ -20,6 +20,7 @@ import { useAuthStore } from "./store/authStore";
 import NotFound from "./pages/NotFound";
 import { PublicRoute } from "./utils/PublicRoute";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import CertificateDetails from "./pages/Certificates/CertificateDetails";
 
 // Public routes that don't require authentication
 const publicRoutes = [
@@ -54,6 +55,10 @@ const protectedRoutes = [
   {
     path: "/projects/:projectId/tasks/:taskId",
     element: <TaskDetail />,
+  },
+  {
+    path: "/certificates/:certificate_no",
+    element: <CertificateDetails />,
   },
   // Add more protected routes here
   // Example:
