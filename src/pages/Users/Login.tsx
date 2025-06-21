@@ -11,7 +11,7 @@ import {
   CircularProgress,
 } from "@mui/material";
 import { useNavigate, Link as RouterLink } from "react-router-dom";
-import { useLogin } from "../hooks/useAuth";
+import { useLogin } from "../../hooks/useAuth";
 
 export default function Login() {
   const [email, setEmail] = useState("");
