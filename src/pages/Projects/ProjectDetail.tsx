@@ -1,3 +1,4 @@
+import React from 'react';
 import { useParams, Link } from "react-router-dom";
 import {
   Container,
@@ -14,6 +15,7 @@ import {
   Paper,
   Breadcrumbs,
   Snackbar,
+  Divider,
 } from "@mui/material";
 import {
   ArrowBack as ArrowBackIcon,
@@ -25,6 +27,7 @@ import {
   Assignment as AssignmentIcon,
   School as SchoolIcon,
   CheckCircle as CheckCircleIcon,
+  ChevronRight as ChevronRightIcon,
 } from "@mui/icons-material";
 import type { Project, Task } from "../../types/project";
 import { difficultyColors, categoryColors } from "../../constants/projects";
@@ -133,7 +136,7 @@ export default function ProjectDetail() {
       )}
 
       {/* Project Header */}
-      <Paper elevation={2} sx={{ p: 4, mb: 4 }}>
+      <Paper elevation={4} sx={{ p: 3, borderRadius: 4, mb: 5, boxShadow: 6 }}>
         <Box
           sx={{
             display: "flex",
@@ -185,16 +188,8 @@ export default function ProjectDetail() {
           )}
         </Box>
 
-        <Typography
-          variant="body1"
-          color="text.secondary"
-          sx={{ mb: 3, lineHeight: 1.6 }}
-        >
-          {project.description || "No description available"}
-        </Typography>
-
-        <Grid container spacing={2}>
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+        <Grid container spacing={0} alignItems="stretch">
+          <Grid size={{ xs: 12, sm: 6, md: 3 }} sx={{ pr: { md: 2 }, borderRight: { md: '1px solid #eee' } }}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
               <TrendingUpIcon color="action" />
               <Typography variant="body2" color="text.secondary">
@@ -211,7 +206,7 @@ export default function ProjectDetail() {
               />
             </Box>
           </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }} sx={{ pr: { md: 2 }, borderRight: { md: '1px solid #eee' } }}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
               <GroupIcon color="action" />
               <Typography variant="body2" color="text.secondary">
@@ -219,7 +214,7 @@ export default function ProjectDetail() {
               </Typography>
             </Box>
           </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }} sx={{ pr: { md: 2 }, borderRight: { md: '1px solid #eee' } }}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
               <AssignmentIcon color="action" />
               <Typography variant="body2" color="text.secondary">
@@ -227,7 +222,7 @@ export default function ProjectDetail() {
               </Typography>
             </Box>
           </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }} sx={{ pl: { md: 2 } }}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
               <ScheduleIcon color="action" />
               <Typography variant="body2" color="text.secondary">
@@ -239,110 +234,48 @@ export default function ProjectDetail() {
       </Paper>
 
       {/* Tasks Section */}
-      <Paper elevation={2} sx={{ p: 4 }}>
-        <Typography
-          variant="h5"
-          component="h2"
-          gutterBottom
-          sx={{ display: "flex", alignItems: "center", gap: 1 }}
-        >
-          <AssignmentIcon />
-          Project Tasks
-        </Typography>
-
+      <Paper elevation={4} sx={{ p: 3, borderRadius: 4, mb: 5 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+          <AssignmentIcon sx={{ mr: 1 }} />
+          <Typography variant="h5" fontWeight={600}>Project Tasks</Typography>
+        </Box>
+        <Divider sx={{ mb: 2 }} />
         {project.tasks && project.tasks.length > 0 ? (
-          <Grid container spacing={2}>
-            {project.tasks.map((task: Task) => (
-              <Grid size={{ xs: 12 }} key={task.id}>
-                <Card
-                  sx={{
-                    transition: "all 0.3s ease-in-out",
-                    "&:hover": {
-                      transform: "translateY(-2px)",
-                      boxShadow: 3,
-                    },
-                  }}
-                  component={Link}
-                  to={`/projects/${project.id}/tasks/${task.id}`}
-                  style={{ textDecoration: "none" }}
-                >
-                  <CardContent>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "flex-start",
-                        mb: 2,
-                      }}
-                    >
-                      <Box>
-                        <Typography variant="h6" component="h3" gutterBottom>
-                          {task.name}
-                        </Typography>
-                        <Typography
-                          variant="body2"
-                          color="text.secondary"
-                          sx={{ mb: 2 }}
-                        >
-                          {task.description || "No description available"}
-                        </Typography>
-                      </Box>
-                      <Box
-                        sx={{
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "flex-end",
-                          gap: 1,
-                        }}
-                      >
-                        <Chip
-                          label={task.difficulty_level}
-                          color={
-                            difficultyColors[
-                              task.difficulty_level as keyof typeof difficultyColors
-                            ] || "default"
-                          }
-                          size="small"
-                        />
-                        {/* {task.status && (
-                          <Chip
-                            label={task.status}
-                            color={
-                              taskStatusColors[
-                                task.isFinished as keyof typeof taskStatusColors
-                              ] || "default"
-                            }
-                            size="small"
-                            variant="outlined"
-                          />
-                        )} */}
-                      </Box>
-                    </Box>
-
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                      <Typography variant="caption" color="text.secondary">
-                        Created: {formatDate(task.created_at)}
-                      </Typography>
-                      {/* {task.due_date && (
-                        <Typography variant="caption" color="text.secondary">
-                          Due: {formatDate(task.due_date)}
-                        </Typography>
-                      )} */}
-                    </Box>
-                  </CardContent>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
+          project.tasks.map((task, idx) => (
+            <React.Fragment key={task.id}>
+              <Box
+                component={Link}
+                to={`/projects/${project.id}/tasks/${task.id}`}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  p: 2,
+                  borderRadius: 2,
+                  transition: 'background 0.2s, box-shadow 0.2s',
+                  textDecoration: 'none',
+                  color: 'inherit',
+                  '&:hover': { background: '#f5f5f5', boxShadow: 2 }
+                }}
+              >
+                <Box>
+                  <Typography variant="subtitle1" fontWeight={500}>{task.name}</Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    Created: {formatDate(task.created_at)}
+                  </Typography>
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Chip label={task.difficulty_level} size="small" />
+                  <ChevronRightIcon color="action" />
+                </Box>
+              </Box>
+              {idx < project.tasks.length - 1 && <Divider sx={{ my: 2 }} />}
+            </React.Fragment>
+          ))
         ) : (
-          <Box sx={{ textAlign: "center", py: 4 }}>
-            <Typography variant="h6" color="text.secondary" gutterBottom>
-              No tasks available
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Tasks will appear here once they are added to the project
-            </Typography>
-          </Box>
+          <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
+            No tasks available
+          </Typography>
         )}
       </Paper>
 
