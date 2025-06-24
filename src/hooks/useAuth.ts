@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "../services/api";
 import { useAuthStore } from "../store/authStore";
+import type { User } from "../types/user";
 
 interface LoginCredentials {
   email: string;
@@ -17,7 +18,20 @@ interface SignupData {
 interface AuthResponse {
   access: string;
   refresh: string;
+  user?: User;
 }
+
+interface OAuthData {
+  access_token: string;
+  redirect_uri: string;
+}
+
+type GitHubAuthParams = {
+  code: string;
+  state: string;
+  redirect_uri: string;
+};
+
 
 const loginUser = async (
   credentials: LoginCredentials
@@ -29,6 +43,38 @@ const loginUser = async (
 const signupUser = async (data: SignupData): Promise<AuthResponse> => {
   const response = await api.post("/auth/register/", data);
   return response.data;
+};
+
+// OAuth authentication functions
+const authenticateWithGoogle = async (
+  data: OAuthData
+): Promise<AuthResponse> => {
+  const response = await api.post("/auth/dj-rest-auth/google/", data, {
+    headers: {
+      "X-CSRFToken": getCSRFToken(),
+    },
+  });
+  return response.data;
+};
+
+const authenticateWithGitHub = async (
+  data : GitHubAuthParams
+): Promise<AuthResponse> => {
+  const response = await api.post("/auth/dj-rest-auth/github/", {
+    code: data.code,
+    state: data.state,
+    redirect_uri: data.redirect_uri,
+  });
+  return response.data;
+};
+
+// Helper function to get CSRF token from cookies
+export const getCSRFToken = (): string => {
+  const cookies = document.cookie.split(";");
+  const csrfCookie = cookies.find((cookie) =>
+    cookie.trim().startsWith("csrftoken=")
+  );
+  return csrfCookie ? csrfCookie.split("=")[1] : "";
 };
 
 export const useLogin = () => {
@@ -76,6 +122,45 @@ export const useSignup = () => {
           )
           .join("\n");
         throw new Error(errorMessages);
+      }
+      throw error;
+    },
+  });
+};
+
+export const useGoogleAuth = () => {
+  const queryClient = useQueryClient();
+  const setTokens = useAuthStore((state) => state.setTokens);
+
+  return useMutation({
+    mutationFn: authenticateWithGoogle,
+    onSuccess: (data) => {
+      setTokens(data.access, data.refresh);
+      queryClient.invalidateQueries({ queryKey: ["user"] });
+    },
+    onError: (error: any) => {
+      if (error.response?.status === 400) {
+        throw new Error("Google authentication failed. Please try again.");
+      }
+      throw error;
+    },
+  });
+};
+
+
+export const useGitHubAuth = () => {
+  const queryClient = useQueryClient();
+  const setTokens = useAuthStore((state) => state.setTokens);
+
+  return useMutation({
+    mutationFn: authenticateWithGitHub,
+    onSuccess: (data) => {
+      setTokens(data.access, data.refresh);
+      queryClient.invalidateQueries({ queryKey: ["user"] });
+    },
+    onError: (error: any) => {
+      if (error.response?.status === 400) {
+        throw new Error("GitHub authentication failed. Please try again.");
       }
       throw error;
     },

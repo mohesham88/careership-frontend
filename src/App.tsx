@@ -21,6 +21,7 @@ import NotFound from "./pages/NotFound";
 import { PublicRoute } from "./utils/PublicRoute";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import CertificateDetails from "./pages/Certificates/CertificateDetails";
+import OAuthCallback from "./pages/Users/OAuthCallback";
 
 // Public routes that don't require authentication
 const publicRoutes = [
@@ -31,6 +32,10 @@ const publicRoutes = [
   {
     path: "/signup",
     element: <SignUp />,
+  },
+  {
+    path: "/oauth/callback",
+    element: <OAuthCallback />,
   },
 ];
 

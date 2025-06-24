@@ -12,6 +12,7 @@ import {
 } from "@mui/material";
 import { useNavigate, Link as RouterLink } from "react-router-dom";
 import { useSignup } from "../../hooks/useAuth";
+import OAuthButtons from "../../components/OAuthButtons";
 
 interface ValidationErrors {
   [key: string]: string[];
@@ -26,6 +27,7 @@ export default function SignUp() {
     confirmPassword: "",
   });
   const [errors, setErrors] = useState<ValidationErrors>({});
+  const [oauthError, setOauthError] = useState<string | null>(null);
   const navigate = useNavigate();
   const signupMutation = useSignup();
 
@@ -48,6 +50,7 @@ export default function SignUp() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
+    setOauthError(null);
 
     if (formData.password !== formData.confirmPassword) {
       setErrors({
@@ -77,6 +80,15 @@ export default function SignUp() {
     }
   };
 
+  const handleOAuthSuccess = () => {
+    setOauthError(null);
+    navigate("/"); // Redirect to home page after successful OAuth signup
+  };
+
+  const handleOAuthError = (error: string) => {
+    setOauthError(error);
+  };
+
   const getFieldError = (fieldName: string) => {
     return errors[fieldName]?.[0] || "";
   };
@@ -104,11 +116,12 @@ export default function SignUp() {
           <Typography component="h1" variant="h5">
             Sign up
           </Typography>
-          {signupMutation.error && !Object.keys(errors).length && (
-            <Alert severity="error" sx={{ width: "100%", mt: 2 }}>
-              {signupMutation.error.message}
-            </Alert>
-          )}
+          {(signupMutation.error || oauthError) &&
+            !Object.keys(errors).length && (
+              <Alert severity="error" sx={{ width: "100%", mt: 2 }}>
+                {oauthError || signupMutation.error?.message}
+              </Alert>
+            )}
           <Box
             component="form"
             onSubmit={handleSubmit}
@@ -199,7 +212,13 @@ export default function SignUp() {
                 "Sign Up"
               )}
             </Button>
-            <Box sx={{ textAlign: "center" }}>
+
+            <OAuthButtons
+              onSuccess={handleOAuthSuccess}
+              onError={handleOAuthError}
+            />
+
+            <Box sx={{ textAlign: "center", mt: 2 }}>
               <Link component={RouterLink} to="/login" variant="body2">
                 Already have an account? Sign in
               </Link>
