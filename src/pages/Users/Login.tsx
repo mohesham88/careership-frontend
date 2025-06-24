@@ -12,15 +12,18 @@ import {
 } from "@mui/material";
 import { useNavigate, Link as RouterLink } from "react-router-dom";
 import { useLogin } from "../../hooks/useAuth";
+import OAuthButtons from "../../components/OAuthButtons";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [oauthError, setOauthError] = useState<string | null>(null);
   const navigate = useNavigate();
   const loginMutation = useLogin();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setOauthError(null);
 
     try {
       await loginMutation.mutateAsync({ email, password });
@@ -29,6 +32,15 @@ export default function Login() {
       // Error is handled by the mutation
       console.error("Login error:", err);
     }
+  };
+
+  const handleOAuthSuccess = () => {
+    setOauthError(null);
+    navigate("/"); // Redirect to home page after successful OAuth login
+  };
+
+  const handleOAuthError = (error: string) => {
+    setOauthError(error);
   };
 
   return (
@@ -54,9 +66,9 @@ export default function Login() {
           <Typography component="h1" variant="h5">
             Sign in
           </Typography>
-          {loginMutation.error && (
+          {(loginMutation.error || oauthError) && (
             <Alert severity="error" sx={{ width: "100%", mt: 2 }}>
-              {loginMutation.error.message}
+              {oauthError || loginMutation.error?.message}
             </Alert>
           )}
           <Box
@@ -103,7 +115,13 @@ export default function Login() {
                 "Sign In"
               )}
             </Button>
-            <Box sx={{ textAlign: "center" }}>
+
+            <OAuthButtons
+              onSuccess={handleOAuthSuccess}
+              onError={handleOAuthError}
+            />
+
+            <Box sx={{ textAlign: "center", mt: 2 }}>
               <Link component={RouterLink} to="/signup" variant="body2">
                 Don't have an account? Sign up
               </Link>
