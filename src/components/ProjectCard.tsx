@@ -58,7 +58,20 @@ function ProjectCard({ project }: { project: Project }) {
             )
           }
           title={
-            <Typography variant="h6" component="div" noWrap>
+            <Typography
+              variant="h6"
+              component="h2"
+              sx={{
+                wordBreak: 'break-word',
+                whiteSpace: 'normal',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                fontWeight: 600,
+              }}
+            >
               {project.name}
             </Typography>
           }
