@@ -9,6 +9,10 @@ import {
   Skeleton,
   Alert,
   Grid,
+  Select,
+  MenuItem,
+  InputLabel,
+  FormControl,
 } from "@mui/material";
 
 import type { Project } from "../../types/project";
@@ -16,6 +20,8 @@ import ProjectCard from "../../components/ProjectCard";
 import api from '../../services/api';
 
 const PAGE_SIZE = 10;
+const DIFFICULTY_OPTIONS = ["", "Easy", "Medium", "Hard"];
+const CATEGORY_OPTIONS = ["", "Frontend", "Backend", "Fullstack"];
 
 export default function Projects() {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -23,11 +29,22 @@ export default function Projects() {
   const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [difficulty, setDifficulty] = useState('');
+  const [category, setCategory] = useState('');
+
+  useEffect(() => {
+    setPage(1); // Reset page when filters change
+  }, [difficulty, category]);
 
   useEffect(() => {
     setLoading(true);
     setError(null);
-    api.get(`/projects/?page=${page}`)
+    const params = new URLSearchParams();
+    params.append('page', page.toString());
+    if (difficulty) params.append('difficulty_level', difficulty);
+    if (category) params.append('category', category);
+
+    api.get(`/projects/?${params.toString()}`)
       .then(res => {
         setProjects(res.data.results);
         setCount(res.data.count);
@@ -37,7 +54,7 @@ export default function Projects() {
         setError('Failed to load projects');
         setLoading(false);
       });
-  }, [page]);
+  }, [page, difficulty, category]);
 
   const totalPages = Math.ceil(count / PAGE_SIZE);
 
@@ -85,6 +102,32 @@ export default function Projects() {
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Box sx={{ mb: 4, display: 'flex', gap: 2 }}>
+        <FormControl size="small" sx={{ minWidth: 140 }}>
+          <InputLabel>Difficulty</InputLabel>
+          <Select
+            value={difficulty}
+            label="Difficulty"
+            onChange={e => setDifficulty(e.target.value)}
+          >
+            {DIFFICULTY_OPTIONS.map(opt => (
+              <MenuItem key={opt} value={opt}>{opt || 'All'}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <FormControl size="small" sx={{ minWidth: 140 }}>
+          <InputLabel>Category</InputLabel>
+          <Select
+            value={category}
+            label="Category"
+            onChange={e => setCategory(e.target.value)}
+          >
+            {CATEGORY_OPTIONS.map(opt => (
+              <MenuItem key={opt} value={opt}>{opt || 'All'}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </Box>
       <Box sx={{ mb: 4 }}>
         <Typography variant="h4" component="h1" gutterBottom>
           Explore Projects
