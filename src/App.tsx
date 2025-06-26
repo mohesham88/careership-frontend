@@ -22,6 +22,8 @@ import { PublicRoute } from "./utils/PublicRoute";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import CertificateDetails from "./pages/Certificates/CertificateDetails";
 import OAuthCallback from "./pages/Users/OAuthCallback";
+import Home from "./pages/Home";
+import { darkPalette, lightPalette } from "./theme/palette";
 
 // Public routes that don't require authentication
 const publicRoutes = [
@@ -37,14 +39,14 @@ const publicRoutes = [
     path: "/oauth/callback",
     element: <OAuthCallback />,
   },
+  {
+    path: "/",
+    element: <Home />,
+  },
 ];
 
 // Protected routes that require authentication
 const protectedRoutes = [
-  {
-    path: "/",
-    element: <div>Home Page</div>,
-  },
   {
     path: "/profile",
     element: <Profile />,
@@ -77,11 +79,9 @@ const protectedRoutes = [
 
 function App() {
   const { darkMode, toggleDarkMode } = useThemeStore();
-
+  const palette = darkMode ? darkPalette : lightPalette;
   const theme = createTheme({
-    palette: {
-      mode: darkMode ? "dark" : "light",
-    },
+    palette,
   });
 
   const queryClient = new QueryClient();
@@ -109,6 +109,7 @@ function App() {
                     element={<PublicRoute>{route.element}</PublicRoute>}
                   />
                 ))}
+                
 
                 {/* Protected Routes */}
                 {protectedRoutes.map((route) => (
