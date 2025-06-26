@@ -4,9 +4,10 @@ import {
   Typography,
   Button,
   Box,
-  Switch,
-  FormControlLabel,
+  IconButton,
+  Tooltip,
 } from "@mui/material";
+import { Brightness4, Brightness7 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 
@@ -32,16 +33,11 @@ export default function Navbar({ darkMode, onDarkModeToggle }: NavbarProps) {
         </Typography>
 
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          <FormControlLabel
-            control={
-              <Switch
-                checked={darkMode}
-                onChange={onDarkModeToggle}
-                color="default"
-              />
-            }
-            label={darkMode ? "Light Mode" : "Dark Mode"}
-          />
+          <Tooltip title={darkMode ? "Light Mode" : "Dark Mode"}>
+            <IconButton color="inherit" onClick={onDarkModeToggle}>
+              {darkMode ? <Brightness7 /> : <Brightness4 />}
+            </IconButton>
+          </Tooltip>
 
           {isAuthenticated ? (
             <Button color="inherit" onClick={handleLogout}>
