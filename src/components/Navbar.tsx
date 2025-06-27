@@ -66,6 +66,8 @@ export default function Navbar({ darkMode, onDarkModeToggle }: NavbarProps) {
               Login
             </Button>
           )}
+
+          <Button color="inherit" onClick={() => navigate("/teams")}>Teams</Button>
         </Box>
       </Toolbar>
     </AppBar>
