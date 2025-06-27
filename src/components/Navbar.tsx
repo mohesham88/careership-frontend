@@ -6,10 +6,12 @@ import {
   Box,
   IconButton,
   Tooltip,
+  Avatar,
 } from "@mui/material";
-import { Brightness4, Brightness7 } from "@mui/icons-material";
+import { Brightness4, Brightness7, AccountCircle } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
+import logo from "../assets/logo.png";
 
 interface NavbarProps {
   darkMode: boolean;
@@ -28,9 +30,14 @@ export default function Navbar({ darkMode, onDarkModeToggle }: NavbarProps) {
   return (
     <AppBar position="static">
       <Toolbar>
-        <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-          CareerShip
-        </Typography>
+        <Box
+          component="img"
+          src={logo}
+          alt="CareerShip Logo"
+          sx={{ height: 60, cursor: "pointer", mr: 2 }}
+          onClick={() => navigate("/")}
+        />
+        <Box sx={{ flexGrow: 1 }} />
 
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
           <Tooltip title={darkMode ? "Light Mode" : "Dark Mode"}>
@@ -40,9 +47,20 @@ export default function Navbar({ darkMode, onDarkModeToggle }: NavbarProps) {
           </Tooltip>
 
           {isAuthenticated ? (
-            <Button color="inherit" onClick={handleLogout}>
-              Logout
-            </Button>
+            <>
+              <IconButton
+                color="inherit"
+                onClick={() => navigate("/profile")}
+                sx={{ p: 0 }}
+              >
+                <Avatar sx={{ bgcolor: "primary.main", width: 36, height: 36 }}>
+                  <AccountCircle />
+                </Avatar>
+              </IconButton>
+              <Button color="inherit" onClick={handleLogout}>
+                Logout
+              </Button>
+            </>
           ) : (
             <Button color="inherit" onClick={() => navigate("/login")}>
               Login
