@@ -37,8 +37,11 @@ export default function Navbar({ darkMode, onDarkModeToggle }: NavbarProps) {
           sx={{ height: 60, cursor: "pointer", mr: 2 }}
           onClick={() => navigate("/")}
         />
-        <Box sx={{ flexGrow: 1 }} />
-
+        <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center', gap: 2 }}>
+          <Button color="inherit" onClick={() => navigate("/")}>Home</Button>
+          <Button color="inherit" onClick={() => navigate("/projects")}>Projects</Button>
+          <Button color="inherit" onClick={() => navigate("/teams")}>Teams</Button>
+        </Box>
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
           <Tooltip title={darkMode ? "Light Mode" : "Dark Mode"}>
             <IconButton color="inherit" onClick={onDarkModeToggle}>
@@ -66,8 +69,6 @@ export default function Navbar({ darkMode, onDarkModeToggle }: NavbarProps) {
               Login
             </Button>
           )}
-
-          <Button color="inherit" onClick={() => navigate("/teams")}>Teams</Button>
         </Box>
       </Toolbar>
     </AppBar>
