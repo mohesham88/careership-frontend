@@ -1,7 +1,7 @@
 import type { User } from './user';
 
 export interface Team {
-  id: number;
+  uuid: string;
   name: string;
   owner: User;
   members: User[];
@@ -10,7 +10,7 @@ export interface Team {
 
 export interface Invitation {
   uuid: string;
-  team: number | Team;
+  team: string | Team;
   created_by: User;
   created_at: string;
   expires_in_days: number;
