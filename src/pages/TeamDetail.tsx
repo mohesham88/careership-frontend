@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Container, Typography, Box, Avatar, Stack, CircularProgress, Alert, Button, Divider, Chip, Tooltip, Dialog, DialogTitle, DialogContent, DialogActions, TextField } from '@mui/material';
+import { Container, Typography, Box, Avatar, Stack, CircularProgress, Alert, Button, Divider, Chip, Tooltip, Dialog, DialogTitle, DialogContent, DialogActions, TextField, List, ListItem, ListItemAvatar, ListItemText } from '@mui/material';
 import { Group as GroupIcon, Person as PersonIcon, Email as EmailIcon } from '@mui/icons-material';
 import type { Team, Invitation } from '../types/team';
 import type { User } from '../types/user';
@@ -20,6 +20,7 @@ export default function TeamDetail() {
   const [copied, setCopied] = useState<string | null>(null);
   const [confirmRemove, setConfirmRemove] = useState<{ open: boolean; email: string | null }>({ open: false, email: null });
   const [confirmDelete, setConfirmDelete] = useState<{ open: boolean; uuid: string | null }>({ open: false, uuid: null });
+  const [membersModalOpen, setMembersModalOpen] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuthStore();
 
@@ -143,29 +144,9 @@ export default function TeamDetail() {
       <Divider sx={{ my: 3 }} />
       <Box sx={{ mb: 3 }}>
         <Typography variant="h6" gutterBottom>Members</Typography>
-        <Stack direction="row" spacing={2}>
-          {team.members.map((member: User, idx) => (
-            <Tooltip key={idx} title={`${member.first_name} ${member.last_name} (${member.email})`}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Avatar sx={{ width: 40, height: 40 }}>
-                  {member.first_name.charAt(0)}{member.last_name.charAt(0)}
-                </Avatar>
-                {/* Show remove button if current user is owner and not the owner themselves */}
-                {isOwner && member.email !== team.owner.email && (
-                  <Button
-                    size="small"
-                    color="error"
-                    variant="outlined"
-                    sx={{ ml: 1 }}
-                    onClick={() => handleRemoveMember(member.email)}
-                  >
-                    Remove
-                  </Button>
-                )}
-              </Box>
-            </Tooltip>
-          ))}
-        </Stack>
+        <Button variant="outlined" onClick={() => setMembersModalOpen(true)} sx={{ mb: 1 }}>
+          Show Members ({team.members.length})
+        </Button>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
           Total members: {team.members.length}
         </Typography>
@@ -265,6 +246,41 @@ export default function TeamDetail() {
         <DialogActions>
           <Button onClick={() => setConfirmDelete({ open: false, uuid: null })}>Cancel</Button>
           <Button color="error" variant="contained" onClick={confirmDeleteInvitation}>Delete</Button>
+        </DialogActions>
+      </Dialog>
+      {/* Members Modal */}
+      <Dialog open={membersModalOpen} onClose={() => setMembersModalOpen(false)} maxWidth="xs" fullWidth>
+        <DialogTitle>Team Members</DialogTitle>
+        <DialogContent>
+          <List>
+            {team.members.map((member: User) => (
+              <ListItem key={member.email} secondaryAction={
+                isOwner && member.email !== team.owner.email && (
+                  <Button
+                    size="small"
+                    color="error"
+                    variant="outlined"
+                    onClick={() => handleRemoveMember(member.email)}
+                  >
+                    Remove
+                  </Button>
+                )
+              }>
+                <ListItemAvatar>
+                  <Avatar>
+                    {member.first_name.charAt(0)}{member.last_name.charAt(0)}
+                  </Avatar>
+                </ListItemAvatar>
+                <ListItemText
+                  primary={`${member.first_name} ${member.last_name}`}
+                  secondary={member.email}
+                />
+              </ListItem>
+            ))}
+          </List>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setMembersModalOpen(false)}>Close</Button>
         </DialogActions>
       </Dialog>
     </Container>
