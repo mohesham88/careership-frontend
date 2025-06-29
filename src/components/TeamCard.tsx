@@ -5,7 +5,7 @@ import type { Team } from "../types/team";
 
 function TeamCard({ team, onViewDetails }: { team: Team; onViewDetails?: (team: Team) => void }) {
   return (
-    <Grid size={{ xs: 12, sm: 6, md: 4 }} key={team.id}>
+    <Grid size={{ xs: 12, sm: 6, md: 4 }} key={team.uuid} component="div">
       <Card
         sx={{
           height: "100%",
@@ -42,24 +42,24 @@ function TeamCard({ team, onViewDetails }: { team: Team; onViewDetails?: (team: 
               {team.name}
             </Typography>
           }
-          subheader={
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <PersonIcon fontSize="small" color="action" />
-              <Typography variant="body2" color="text.secondary" noWrap>
-                Owner: {team.owner.first_name} {team.owner.last_name}
-              </Typography>
-            </Box>
-          }
+          // subheader={
+          //   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          //     <PersonIcon fontSize="small" color="action" />
+          //     <Typography variant="body2" color="text.secondary" noWrap>
+          //       Owner: {team.name}
+          //     </Typography>
+          //   </Box>
+          // }
         />
         <CardContent sx={{ flexGrow: 1 }}>
           <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-            <GroupIcon sx={{ fontSize: 16, mr: 0.5, color: "text.secondary" }} />
+            {/* <GroupIcon sx={{ fontSize: 16, mr: 0.5, color: "text.secondary" }} />
             <Typography variant="body2" color="text.secondary">
-              Members: {team.members.length}
-            </Typography>
-            <Stack direction="row" spacing={-1} sx={{ ml: 2 }}>
+              Members: {team.members.length}test
+            </Typography> */}
+            {/* <Stack direction="row" spacing={-1} sx={{ ml: 2 }}>
               {team.members.slice(0, 4).map((member, idx) => (
-                <Tooltip key={idx} title={`${member.first_name} ${member.last_name}`}> 
+                <Tooltip key={idx} title={`${member.first_name} ${member.last_name}`}>
                   <Avatar sx={{ width: 24, height: 24, fontSize: 12 }}>
                     {member.first_name.charAt(0)}{member.last_name.charAt(0)}
                   </Avatar>
@@ -68,11 +68,12 @@ function TeamCard({ team, onViewDetails }: { team: Team; onViewDetails?: (team: 
               {team.members.length > 4 && (
                 <Avatar sx={{ width: 24, height: 24, fontSize: 12 }}>+{team.members.length - 4}</Avatar>
               )}
-            </Stack>
+            </Stack> */}
           </Box>
-          <Typography variant="body2" color="text.secondary">
+          {/* <Typography variant="body2" color="text.secondary">
             Created: {new Date(team.created_at).toLocaleDateString()}
-          </Typography>
+            Created: test
+          </Typography> */}
         </CardContent>
         <CardActions sx={{ p: 2, pt: 0 }}>
           <Button size="small" color="primary" sx={{ width: "100%" }} onClick={() => onViewDetails?.(team)}>
