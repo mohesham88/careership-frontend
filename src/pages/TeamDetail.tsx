@@ -16,6 +16,7 @@ export default function TeamDetail() {
   const [inviteDays, setInviteDays] = useState(3);
   const [inviteLoading, setInviteLoading] = useState(false);
   const [inviteError, setInviteError] = useState<string | null>(null);
+  const [copied, setCopied] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -68,6 +69,13 @@ export default function TeamDetail() {
     await disableInvitation(uuid!, inv.uuid);
     const invRes = await fetchInvitations(uuid!);
     setInvitations(invRes.data.results || invRes.data);
+  };
+
+  const getUserFacingInvitationLink = (inv: Invitation, team: Team) => {
+    if (inv.invitation_url && inv.invitation_url.startsWith('http')) {
+      return inv.invitation_url;
+    }
+    return `${window.location.origin}/teams/${team.uuid}/invitations/${inv.uuid}/accept`;
   };
 
   if (loading) {
@@ -135,14 +143,30 @@ export default function TeamDetail() {
         ) : (
           <Stack spacing={1}>
             {invitations.map((inv) => (
-              <Chip
-                key={inv.uuid}
-                label={`Created: ${new Date(inv.created_at).toLocaleDateString()} | Expires in: ${inv.expires_in_days} days | Active: ${inv.is_active ? 'Yes' : 'No'}`}
-                color={inv.is_active ? 'success' : 'default'}
-                variant="outlined"
-                onClick={() => inv.is_active ? handleDisable(inv) : handleEnable(inv)}
-                clickable
-              />
+              <Box key={inv.uuid} sx={{ mb: 1 }}>
+                <Chip
+                  label={`Created: ${new Date(inv.created_at).toLocaleDateString()} | Expires in: ${inv.expires_in_days} days | Active: ${inv.is_active ? 'Yes' : 'No'}`}
+                  color={inv.is_active ? 'success' : 'default'}
+                  variant="outlined"
+                  onClick={() => inv.is_active ? handleDisable(inv) : handleEnable(inv)}
+                  clickable
+                />
+                {inv.invitation_url && (
+                  <Button
+                    size="small"
+                    sx={{ mt: 1, ml: 2 }}
+                    variant="outlined"
+                    onClick={() => {
+                      const link = getUserFacingInvitationLink(inv, team);
+                      navigator.clipboard.writeText(link);
+                      setCopied(inv.uuid);
+                      setTimeout(() => setCopied(null), 1500);
+                    }}
+                  >
+                    {copied === inv.uuid ? "Copied!" : "Copy Invitation Link"}
+                  </Button>
+                )}
+              </Box>
             ))}
           </Stack>
         )}
