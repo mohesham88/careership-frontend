@@ -24,6 +24,9 @@ import CertificateDetails from "./pages/Certificates/CertificateDetails";
 import OAuthCallback from "./pages/Users/OAuthCallback";
 import Home from "./pages/Home";
 import { darkPalette, lightPalette } from "./theme/palette";
+import Teams from "./pages/Teams";
+import TeamDetail from "./pages/TeamDetail";
+import AcceptInvitation from "./pages/AcceptInvitation";
 
 // Public routes that don't require authentication
 const publicRoutes = [
@@ -42,6 +45,10 @@ const publicRoutes = [
   {
     path: "/",
     element: <Home />,
+  },
+  {
+    path: "/teams/:team_uuid/invitations/:pk/accept",
+    element: <AcceptInvitation />,
   },
 ];
 
@@ -66,6 +73,14 @@ const protectedRoutes = [
   {
     path: "/certificates/:certificate_no",
     element: <CertificateDetails />,
+  },
+  {
+    path: "/teams",
+    element: <Teams />,
+  },
+  {
+    path: "/teams/:uuid",
+    element: <TeamDetail />,
   },
   // Add more protected routes here
   // Example:
