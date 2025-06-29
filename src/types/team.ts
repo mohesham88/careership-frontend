@@ -15,4 +15,5 @@ export interface Invitation {
   created_at: string;
   expires_in_days: number;
   is_active: boolean;
+  invitation_url?: string;
 } 
