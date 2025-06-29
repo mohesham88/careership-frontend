@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Container, Typography, Box, Avatar, Stack, CircularProgress, Alert, Button, Divider, Chip, Tooltip, Dialog, DialogTitle, DialogContent, DialogActions, TextField, List, ListItem, ListItemAvatar, ListItemText } from '@mui/material';
+import { Container, Typography, Box, Avatar, Stack, CircularProgress, Alert, Button, Divider, Chip, Tooltip, Dialog, DialogTitle, DialogContent, DialogActions, TextField, List, ListItem, ListItemAvatar, ListItemText, IconButton } from '@mui/material';
 import { Group as GroupIcon, Person as PersonIcon, Email as EmailIcon } from '@mui/icons-material';
 import type { Team, Invitation } from '../types/team';
 import type { User } from '../types/user';
@@ -143,10 +143,24 @@ export default function TeamDetail() {
       </Box>
       <Divider sx={{ my: 3 }} />
       <Box sx={{ mb: 3 }}>
-        <Typography variant="h6" gutterBottom>Members</Typography>
-        <Button variant="outlined" onClick={() => setMembersModalOpen(true)} sx={{ mb: 1 }}>
-          Show Members ({team.members.length})
-        </Button>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+          <Typography variant="h6" gutterBottom>Members</Typography>
+          <IconButton size="small" onClick={() => setMembersModalOpen(true)} aria-label="Show Members">
+            <GroupIcon fontSize="small" />
+          <Typography variant="body2" color="text.secondary" sx={{ ml: 0.5 }}>
+            Show all members
+          </Typography>
+          </IconButton>
+        </Box>
+        <Stack direction="row" spacing={2}>
+          {team.members.map((member: User, idx) => (
+            <Tooltip key={idx} title={`${member.first_name} ${member.last_name} (${member.email})`}>
+              <Avatar sx={{ width: 40, height: 40 }}>
+                {member.first_name.charAt(0)}{member.last_name.charAt(0)}
+              </Avatar>
+            </Tooltip>
+          ))}
+        </Stack>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
           Total members: {team.members.length}
         </Typography>
