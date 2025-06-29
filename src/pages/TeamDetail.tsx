@@ -1,23 +1,28 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { Container, Typography, Box, Avatar, Stack, CircularProgress, Alert, Button, Divider, Chip, Tooltip } from '@mui/material';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Container, Typography, Box, Avatar, Stack, CircularProgress, Alert, Button, Divider, Chip, Tooltip, Dialog, DialogTitle, DialogContent, DialogActions, TextField } from '@mui/material';
 import { Group as GroupIcon, Person as PersonIcon, Email as EmailIcon } from '@mui/icons-material';
 import type { Team, Invitation } from '../types/team';
 import type { User } from '../types/user';
-import api from '../services/api';
+import { fetchTeam, fetchInvitations, createInvitation, leaveTeam, addMember, removeMember, enableInvitation, disableInvitation } from '../services/api';
 
 export default function TeamDetail() {
-  const { id } = useParams<{ id: string }>();
+  const { uuid } = useParams<{ uuid: string }>();
   const [team, setTeam] = useState<Team | null>(null);
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+  const [inviteDays, setInviteDays] = useState(3);
+  const [inviteLoading, setInviteLoading] = useState(false);
+  const [inviteError, setInviteError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     setLoading(true);
     Promise.all([
-      api.get(`/teams/${id}/`),
-      api.get(`/teams/${id}/invitations/`),
+      fetchTeam(uuid!),
+      fetchInvitations(uuid!),
     ])
       .then(([teamRes, invRes]) => {
         setTeam(teamRes.data);
@@ -28,12 +33,42 @@ export default function TeamDetail() {
         setError('Failed to load team details');
         setLoading(false);
       });
-  }, [id]);
+  }, [uuid]);
 
-  // Placeholder for invite, join, leave actions
-  const handleInvite = () => {};
-  const handleJoin = () => {};
-  const handleLeave = () => {};
+  const handleInvite = () => setInviteDialogOpen(true);
+  const handleInviteClose = () => {
+    setInviteDialogOpen(false);
+    setInviteError(null);
+    setInviteDays(3);
+  };
+  const handleInviteSubmit = async () => {
+    setInviteLoading(true);
+    setInviteError(null);
+    try {
+      await createInvitation(uuid!, { expires_in_days: inviteDays });
+      const invRes = await fetchInvitations(uuid!);
+      setInvitations(invRes.data.results || invRes.data);
+      setInviteDialogOpen(false);
+    } catch (e) {
+      setInviteError('Failed to create invitation');
+    } finally {
+      setInviteLoading(false);
+    }
+  };
+  const handleLeave = async () => {
+    await leaveTeam(uuid!);
+    navigate('/teams');
+  };
+  const handleEnable = async (inv: Invitation) => {
+    await enableInvitation(uuid!, inv.uuid);
+    const invRes = await fetchInvitations(uuid!);
+    setInvitations(invRes.data.results || invRes.data);
+  };
+  const handleDisable = async (inv: Invitation) => {
+    await disableInvitation(uuid!, inv.uuid);
+    const invRes = await fetchInvitations(uuid!);
+    setInvitations(invRes.data.results || invRes.data);
+  };
 
   if (loading) {
     return (
@@ -105,6 +140,8 @@ export default function TeamDetail() {
                 label={`Created: ${new Date(inv.created_at).toLocaleDateString()} | Expires in: ${inv.expires_in_days} days | Active: ${inv.is_active ? 'Yes' : 'No'}`}
                 color={inv.is_active ? 'success' : 'default'}
                 variant="outlined"
+                onClick={() => inv.is_active ? handleDisable(inv) : handleEnable(inv)}
+                clickable
               />
             ))}
           </Stack>
@@ -112,9 +149,27 @@ export default function TeamDetail() {
       </Box>
       <Divider sx={{ my: 3 }} />
       <Box sx={{ display: 'flex', gap: 2 }}>
-        <Button variant="contained" color="primary" onClick={handleJoin}>Join Team</Button>
-        <Button variant="outlined" color="secondary" onClick={handleLeave}>Leave Team</Button>
+        <Button variant="contained" color="primary" onClick={handleLeave}>Leave Team</Button>
       </Box>
+      {/* Invite Dialog */}
+      <Dialog open={inviteDialogOpen} onClose={handleInviteClose}>
+        <DialogTitle>Invite Member</DialogTitle>
+        <DialogContent>
+          <TextField
+            label="Expires in days"
+            type="number"
+            value={inviteDays}
+            onChange={e => setInviteDays(Number(e.target.value))}
+            fullWidth
+            sx={{ mt: 2 }}
+          />
+          {inviteError && <Alert severity="error" sx={{ mt: 2 }}>{inviteError}</Alert>}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleInviteClose}>Cancel</Button>
+          <Button onClick={handleInviteSubmit} disabled={inviteLoading} variant="contained">Send Invite</Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 } 
