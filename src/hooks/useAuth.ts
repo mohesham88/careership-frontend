@@ -77,15 +77,19 @@ export const getCSRFToken = (): string => {
   return csrfCookie ? csrfCookie.split("=")[1] : "";
 };
 
+const setUser = useAuthStore.getState().setUser;
+
 export const useLogin = () => {
   const queryClient = useQueryClient();
   const setTokens = useAuthStore((state) => state.setTokens);
 
   return useMutation({
     mutationFn: loginUser,
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       setTokens(data.access, data.refresh);
-      // Invalidate and refetch user data if needed
+      // Fetch user profile and set in store
+      const userRes = await api.get('/auth/profile/');
+      setUser(userRes.data);
       queryClient.invalidateQueries({ queryKey: ["user"] });
     },
     onError: (error: any) => {
@@ -104,9 +108,11 @@ export const useSignup = () => {
 
   return useMutation({
     mutationFn: signupUser,
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       setTokens(data.access, data.refresh);
-      // Invalidate and refetch user data if needed
+      // Fetch user profile and set in store
+      const userRes = await api.get('/auth/profile/');
+      setUser(userRes.data);
       queryClient.invalidateQueries({ queryKey: ["user"] });
     },
     onError: (error: any) => {
@@ -134,8 +140,11 @@ export const useGoogleAuth = () => {
 
   return useMutation({
     mutationFn: authenticateWithGoogle,
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       setTokens(data.access, data.refresh);
+      // Fetch user profile and set in store
+      const userRes = await api.get('/auth/profile/');
+      setUser(userRes.data);
       queryClient.invalidateQueries({ queryKey: ["user"] });
     },
     onError: (error: any) => {
@@ -154,8 +163,11 @@ export const useGitHubAuth = () => {
 
   return useMutation({
     mutationFn: authenticateWithGitHub,
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       setTokens(data.access, data.refresh);
+      // Fetch user profile and set in store
+      const userRes = await api.get('/auth/profile/');
+      setUser(userRes.data);
       queryClient.invalidateQueries({ queryKey: ["user"] });
     },
     onError: (error: any) => {
