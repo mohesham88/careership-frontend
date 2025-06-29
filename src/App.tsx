@@ -26,6 +26,7 @@ import Home from "./pages/Home";
 import { darkPalette, lightPalette } from "./theme/palette";
 import Teams from "./pages/Teams";
 import TeamDetail from "./pages/TeamDetail";
+import AcceptInvitation from "./pages/AcceptInvitation";
 
 // Public routes that don't require authentication
 const publicRoutes = [
@@ -44,6 +45,10 @@ const publicRoutes = [
   {
     path: "/",
     element: <Home />,
+  },
+  {
+    path: "/teams/:team_uuid/invitations/:pk/accept",
+    element: <AcceptInvitation />,
   },
 ];
 
