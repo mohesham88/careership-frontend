@@ -1,18 +1,18 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Container, Typography, Box, Avatar, CircularProgress, Alert, Button, Paper, Divider } from '@mui/material';
-import { Group as GroupIcon, Person as PersonIcon, Email as EmailIcon, CheckCircle as CheckCircleIcon, Cancel as CancelIcon } from '@mui/icons-material';
-import type { Team, Invitation } from '../types/team';
-import { fetchTeam, fetchInvitation, acceptInvitation } from '../services/api';
+import { Container, Typography, Box, CircularProgress, Alert, Button, Paper, Divider } from '@mui/material';
+import { Email as EmailIcon, CheckCircle as CheckCircleIcon, Cancel as CancelIcon } from '@mui/icons-material';
+import type { Invitation } from '../types/team';
+import { fetchInvitation, acceptInvitation } from '../services/api';
 
 export default function AcceptInvitation() {
   const { team_uuid, pk } = useParams<{ team_uuid: string; pk: string }>();
-  const [team, setTeam] = useState<Team | null>(null);
   const [invitation, setInvitation] = useState<Invitation | null>(null);
   const [loading, setLoading] = useState(true);
   const [accepting, setAccepting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -21,15 +21,10 @@ export default function AcceptInvitation() {
       setLoading(false);
       return;
     }
-
     setLoading(true);
-    Promise.all([
-      fetchTeam(team_uuid),
-      fetchInvitation(team_uuid, pk)
-    ])
-      .then(([teamRes, invitationRes]) => {
-        setTeam(teamRes.data);
-        setInvitation(invitationRes.data);
+    fetchInvitation(team_uuid, pk)
+      .then(res => {
+        setInvitation(res.data);
         setLoading(false);
       })
       .catch(() => {
@@ -40,7 +35,6 @@ export default function AcceptInvitation() {
 
   const handleAccept = async () => {
     if (!team_uuid || !pk) return;
-    
     setAccepting(true);
     setError(null);
     try {
@@ -58,6 +52,13 @@ export default function AcceptInvitation() {
 
   const handleDecline = () => {
     navigate('/teams');
+  };
+
+  const getUserFacingInvitationLink = (inv: Invitation) => {
+    if (inv.invitation_url && inv.invitation_url.startsWith('http')) {
+      return inv.invitation_url;
+    }
+    return `${window.location.origin}/teams/${team_uuid}/invitations/${inv.uuid}/accept`;
   };
 
   if (loading) {
@@ -96,10 +97,10 @@ export default function AcceptInvitation() {
     );
   }
 
-  if (!team || !invitation) {
+  if (!invitation) {
     return (
       <Container maxWidth="md" sx={{ py: 6 }}>
-        <Alert severity="error">Team or invitation not found</Alert>
+        <Alert severity="error">Invitation not found</Alert>
       </Container>
     );
   }
@@ -107,55 +108,28 @@ export default function AcceptInvitation() {
   return (
     <Container maxWidth="md" sx={{ py: 6 }}>
       <Paper elevation={3} sx={{ p: 4, textAlign: 'center' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2, mb: 3 }}>
-          <Avatar sx={{ bgcolor: 'primary.main', width: 64, height: 64 }}>
-            {team.name.charAt(0).toUpperCase()}
-          </Avatar>
-          <Box>
-            <Typography variant="h4" fontWeight={700}>
-              {team.name}
-            </Typography>
-            <Typography variant="body1" color="text.secondary">
-              Team Invitation
-            </Typography>
-          </Box>
-        </Box>
-
-        <Divider sx={{ my: 3 }} />
-
-        <Box sx={{ mb: 4 }}>
-          <Typography variant="h6" gutterBottom>
-            You've been invited to join this team!
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="h4" fontWeight={700}>
+            Team Invitation
           </Typography>
-          
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mb: 2 }}>
-            <PersonIcon fontSize="small" color="action" />
-            <Typography variant="body2" color="text.secondary">
-              Invited by: {invitation.created_by.first_name} {invitation.created_by.last_name}
-            </Typography>
-          </Box>
-
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mb: 2 }}>
-            <GroupIcon fontSize="small" color="action" />
-            <Typography variant="body2" color="text.secondary">
-              Current members: {team.members.length}
-            </Typography>
-          </Box>
-
+          <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
+            You've been invited to join a team!
+          </Typography>
+        </Box>
+        <Divider sx={{ my: 3 }} />
+        <Box sx={{ mb: 4 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mb: 2 }}>
             <EmailIcon fontSize="small" color="action" />
             <Typography variant="body2" color="text.secondary">
               Invitation expires in: {invitation.expires_in_days} days
             </Typography>
           </Box>
-
           {!invitation.is_active && (
             <Alert severity="warning" sx={{ mt: 2 }}>
               This invitation has been disabled by the team owner.
             </Alert>
           )}
         </Box>
-
         <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
           <Button
             variant="contained"
