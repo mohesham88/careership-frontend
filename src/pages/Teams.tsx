@@ -3,7 +3,7 @@ import { Container, Typography, Box, Grid, CircularProgress, Alert } from "@mui/
 import { useNavigate } from 'react-router-dom';
 import TeamCard from "../components/TeamCard";
 import type { Team } from "../types/team";
-import api from '../services/api';
+import { fetchTeams } from '../services/api';
 
 export default function Teams() {
   const [teams, setTeams] = useState<Team[]>([]);
@@ -13,10 +13,11 @@ export default function Teams() {
 
   useEffect(() => {
     setLoading(true);
-    api.get('/teams/')
+    fetchTeams()
       .then(res => {
         setTeams(res.data.results || res.data);
         setLoading(false);
+        console.log(res.data);
       })
       .catch(() => {
         setError('Failed to load teams');
@@ -25,17 +26,17 @@ export default function Teams() {
   }, []);
 
   const handleViewDetails = (team: Team) => {
-    navigate(`/teams/${team.id}`);
+    navigate(`/teams/${team.uuid}`);
   };
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Box sx={{ mb: 4 }}>
         <Typography variant="h4" component="h1" gutterBottom>
-          Explore Teams
+          Your Teams
         </Typography>
         <Typography variant="body1" color="text.secondary">
-          Discover and join amazing teams working on real projects
+          View and manage your teams
         </Typography>
       </Box>
       {loading ? (
@@ -47,7 +48,7 @@ export default function Teams() {
       ) : (
         <Grid container spacing={3}>
           {teams.map((team) => (
-            <TeamCard key={team.id} team={team} onViewDetails={handleViewDetails} />
+            <TeamCard key={team.uuid} team={team} onViewDetails={handleViewDetails} />
           ))}
         </Grid>
       )}
@@ -57,7 +58,7 @@ export default function Teams() {
             No teams available
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Check back later for new teams
+            You are not a member of any teams yet.
           </Typography>
         </Box>
       )}
