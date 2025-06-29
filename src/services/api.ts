@@ -122,5 +122,6 @@ export const createInvitation = (teamUuid: string, data: any) => api.post(`/team
 export const acceptInvitation = (teamUuid: string, invitationUuid: string) => api.post(`/teams/${teamUuid}/invitations/${invitationUuid}/accept/`);
 export const enableInvitation = (teamUuid: string, invitationUuid: string) => api.post(`/teams/${teamUuid}/invitations/${invitationUuid}/enable/`);
 export const disableInvitation = (teamUuid: string, invitationUuid: string) => api.post(`/teams/${teamUuid}/invitations/${invitationUuid}/disable/`);
+export const deleteInvitation = (teamUuid: string, invitationUuid: string) => api.delete(`/teams/${teamUuid}/invitations/${invitationUuid}/`);
 
 export default api;
