@@ -74,7 +74,7 @@ const protectedRoutes = [
     element: <Teams />,
   },
   {
-    path: "/teams/:id",
+    path: "/teams/:uuid",
     element: <TeamDetail />,
   },
   // Add more protected routes here
