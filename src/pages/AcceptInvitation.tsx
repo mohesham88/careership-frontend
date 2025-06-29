@@ -147,7 +147,7 @@ export default function AcceptInvitation() {
             size="large"
             startIcon={<CancelIcon />}
             onClick={handleDecline}
-            disabled={accepting}
+            disabled={accepting || !invitation.is_active}
           >
             Decline
           </Button>
