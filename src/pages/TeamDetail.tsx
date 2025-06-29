@@ -4,7 +4,8 @@ import { Container, Typography, Box, Avatar, Stack, CircularProgress, Alert, But
 import { Group as GroupIcon, Person as PersonIcon, Email as EmailIcon } from '@mui/icons-material';
 import type { Team, Invitation } from '../types/team';
 import type { User } from '../types/user';
-import { fetchTeam, fetchInvitations, createInvitation, leaveTeam, addMember, removeMember, enableInvitation, disableInvitation } from '../services/api';
+import { fetchTeam, fetchInvitations, createInvitation, leaveTeam, addMember, removeMember, enableInvitation, disableInvitation, deleteInvitation } from '../services/api';
+import { useAuthStore } from '../store/authStore';
 
 export default function TeamDetail() {
   const { uuid } = useParams<{ uuid: string }>();
@@ -17,7 +18,10 @@ export default function TeamDetail() {
   const [inviteLoading, setInviteLoading] = useState(false);
   const [inviteError, setInviteError] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
+  const [confirmRemove, setConfirmRemove] = useState<{ open: boolean; email: string | null }>({ open: false, email: null });
+  const [confirmDelete, setConfirmDelete] = useState<{ open: boolean; uuid: string | null }>({ open: false, uuid: null });
   const navigate = useNavigate();
+  const { user } = useAuthStore();
 
   useEffect(() => {
     setLoading(true);
@@ -70,6 +74,26 @@ export default function TeamDetail() {
     const invRes = await fetchInvitations(uuid!);
     setInvitations(invRes.data.results || invRes.data);
   };
+  const handleRemoveMember = async (memberEmail: string) => {
+    setConfirmRemove({ open: true, email: memberEmail });
+  };
+  const confirmRemoveMember = async () => {
+    if (!team || !confirmRemove.email) return;
+    await removeMember(team.uuid, confirmRemove.email);
+    const teamRes = await fetchTeam(team.uuid);
+    setTeam(teamRes.data);
+    setConfirmRemove({ open: false, email: null });
+  };
+  const handleDeleteInvitation = async (invitationUuid: string) => {
+    setConfirmDelete({ open: true, uuid: invitationUuid });
+  };
+  const confirmDeleteInvitation = async () => {
+    if (!team || !confirmDelete.uuid) return;
+    await deleteInvitation(team.uuid, confirmDelete.uuid);
+    const invRes = await fetchInvitations(team.uuid);
+    setInvitations(invRes.data.results || invRes.data);
+    setConfirmDelete({ open: false, uuid: null });
+  };
 
   const getUserFacingInvitationLink = (inv: Invitation, team: Team) => {
     if (inv.invitation_url && inv.invitation_url.startsWith('http')) {
@@ -77,6 +101,7 @@ export default function TeamDetail() {
     }
     return `${window.location.origin}/teams/${team.uuid}/invitations/${inv.uuid}/accept`;
   };
+  const isOwner = user?.email?.toLowerCase().trim() === team?.owner?.email?.toLowerCase().trim();
 
   if (loading) {
     return (
@@ -121,9 +146,23 @@ export default function TeamDetail() {
         <Stack direction="row" spacing={2}>
           {team.members.map((member: User, idx) => (
             <Tooltip key={idx} title={`${member.first_name} ${member.last_name} (${member.email})`}>
-              <Avatar sx={{ width: 40, height: 40 }}>
-                {member.first_name.charAt(0)}{member.last_name.charAt(0)}
-              </Avatar>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Avatar sx={{ width: 40, height: 40 }}>
+                  {member.first_name.charAt(0)}{member.last_name.charAt(0)}
+                </Avatar>
+                {/* Show remove button if current user is owner and not the owner themselves */}
+                {isOwner && member.email !== team.owner.email && (
+                  <Button
+                    size="small"
+                    color="error"
+                    variant="outlined"
+                    sx={{ ml: 1 }}
+                    onClick={() => handleRemoveMember(member.email)}
+                  >
+                    Remove
+                  </Button>
+                )}
+              </Box>
             </Tooltip>
           ))}
         </Stack>
@@ -166,6 +205,18 @@ export default function TeamDetail() {
                     {copied === inv.uuid ? "Copied!" : "Copy Invitation Link"}
                   </Button>
                 )}
+                {/* Show delete button for invitations if current user is owner */}
+                {isOwner && (
+                  <Button
+                    size="small"
+                    color="error"
+                    variant="outlined"
+                    sx={{ mt: 1, ml: 1 }}
+                    onClick={() => handleDeleteInvitation(inv.uuid)}
+                  >
+                    Delete
+                  </Button>
+                )}
               </Box>
             ))}
           </Stack>
@@ -192,6 +243,28 @@ export default function TeamDetail() {
         <DialogActions>
           <Button onClick={handleInviteClose}>Cancel</Button>
           <Button onClick={handleInviteSubmit} disabled={inviteLoading} variant="contained">Send Invite</Button>
+        </DialogActions>
+      </Dialog>
+      {/* Remove Member Confirmation Dialog */}
+      <Dialog open={confirmRemove.open} onClose={() => setConfirmRemove({ open: false, email: null })}>
+        <DialogTitle>Remove Member</DialogTitle>
+        <DialogContent>
+          <Typography>Are you sure you want to remove this member from the team?</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmRemove({ open: false, email: null })}>Cancel</Button>
+          <Button color="error" variant="contained" onClick={confirmRemoveMember}>Remove</Button>
+        </DialogActions>
+      </Dialog>
+      {/* Delete Invitation Confirmation Dialog */}
+      <Dialog open={confirmDelete.open} onClose={() => setConfirmDelete({ open: false, uuid: null })}>
+        <DialogTitle>Delete Invitation</DialogTitle>
+        <DialogContent>
+          <Typography>Are you sure you want to delete this invitation?</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmDelete({ open: false, uuid: null })}>Cancel</Button>
+          <Button color="error" variant="contained" onClick={confirmDeleteInvitation}>Delete</Button>
         </DialogActions>
       </Dialog>
     </Container>
