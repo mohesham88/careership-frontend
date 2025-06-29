@@ -117,6 +117,7 @@ export const removeMember = (uuid: string, email: string) => api.delete(`/teams/
 
 // Invitations API
 export const fetchInvitations = (teamUuid: string) => api.get(`/teams/${teamUuid}/invitations/`);
+export const fetchInvitation = (teamUuid: string, invitationUuid: string) => api.get(`/teams/${teamUuid}/invitations/${invitationUuid}/`);
 export const createInvitation = (teamUuid: string, data: any) => api.post(`/teams/${teamUuid}/invitations/`, data);
 export const acceptInvitation = (teamUuid: string, invitationUuid: string) => api.post(`/teams/${teamUuid}/invitations/${invitationUuid}/accept/`);
 export const enableInvitation = (teamUuid: string, invitationUuid: string) => api.post(`/teams/${teamUuid}/invitations/${invitationUuid}/enable/`);
