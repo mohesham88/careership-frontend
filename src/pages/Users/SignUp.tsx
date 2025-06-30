@@ -13,9 +13,6 @@ import {
 import { useNavigate, Link as RouterLink } from "react-router-dom";
 import { useSignup } from "../../hooks/useAuth";
 import OAuthButtons from "../../components/OAuthButtons";
-import Autocomplete from '@mui/material/Autocomplete';
-import { fetchSkills } from '../../services/api';
-import type { Skill } from '../../types/skill';
 
 interface ValidationErrors {
   [key: string]: string[];
@@ -33,8 +30,6 @@ export default function SignUp() {
   const [oauthError, setOauthError] = useState<string | null>(null);
   const navigate = useNavigate();
   const signupMutation = useSignup();
-  const [skills, setSkills] = useState<Skill[]>([]);
-  const [selectedSkills, setSelectedSkills] = useState<Skill[]>([]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -52,10 +47,6 @@ export default function SignUp() {
     }
   };
 
-  useEffect(() => {
-    fetchSkills().then(res => setSkills(res.data));
-  }, []);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
@@ -70,25 +61,12 @@ export default function SignUp() {
 
     try {
       const { confirmPassword, ...signupData } = formData;
-      await signupMutation.mutateAsync({
-        ...signupData,
-        skills: selectedSkills.map(s => s.id),
-      });
+      await signupMutation.mutateAsync(signupData);
       navigate("/");
     } catch (err) {
-      if (err instanceof Error) {
-        // Check if the error message contains field-specific errors
-        if (err.message.includes(":")) {
-          const fieldErrors: ValidationErrors = {};
-          err.message.split("\n").forEach((line) => {
-            const [field, message] = line.split(": ");
-            if (field && message) {
-              fieldErrors[field] = [message];
-            }
-          });
-          setErrors(fieldErrors);
-        }
-      }
+      setErrors({
+        confirmPassword: ["Sign up failed"],
+      });
     }
   };
 
@@ -210,23 +188,6 @@ export default function SignUp() {
               error={!!getFieldError("confirmPassword")}
               helperText={getFieldError("confirmPassword")}
               disabled={signupMutation.isPending}
-            />
-            <Autocomplete
-              multiple
-              options={skills}
-              getOptionLabel={(option) => option.name}
-              value={selectedSkills}
-              onChange={(_, value) => setSelectedSkills(value)}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Skills"
-                  placeholder="Search and select skills"
-                  margin="normal"
-                  fullWidth
-                />
-              )}
-              sx={{ mt: 2, mb: 1 }}
             />
             <Button
               type="submit"
