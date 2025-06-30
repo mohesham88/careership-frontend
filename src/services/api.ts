@@ -125,9 +125,9 @@ export const disableInvitation = (teamUuid: string, invitationUuid: string) => a
 export const deleteInvitation = (teamUuid: string, invitationUuid: string) => api.delete(`/teams/${teamUuid}/invitations/${invitationUuid}/`);
 
 // Skills API
-export const fetchSkills = () => api.get('/skills/');
-export const fetchUserSkills = () => api.get('/user-skills/');
-export const addUserSkill = (skill_id: number) => api.post('/user-skills/', { skill_id });
-export const removeUserSkill = (skill_id: number) => api.delete(`/user-skills/${skill_id}/`);
+export const fetchSkills = () => api.get('/auth/skills/');
+export const fetchUserSkills = () => api.get('/auth/user-skills/');
+export const addUserSkill = (skill_id: number) => api.post('/auth/user-skills/', { skill_id });
+export const removeUserSkill = (skill_id: number) => api.delete(`/auth/user-skills/${skill_id}/`);
 
 export default api;
