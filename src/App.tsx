@@ -26,6 +26,7 @@ import Home from "./pages/Home";
 import { darkPalette, lightPalette } from "./theme/palette";
 import Teams from "./pages/Teams";
 import TeamDetail from "./pages/TeamDetail";
+import CreateAIProject from "./pages/CreateAIProject";
 import AcceptInvitation from "./pages/AcceptInvitation";
 
 // Public routes that don't require authentication
@@ -82,6 +83,10 @@ const protectedRoutes = [
     path: "/teams/:uuid",
     element: <TeamDetail />,
   },
+  {
+    path: "/ai-project",
+    element: <CreateAIProject />,
+  },
   // Add more protected routes here
   // Example:
   // {
@@ -124,7 +129,6 @@ function App() {
                     element={<PublicRoute>{route.element}</PublicRoute>}
                   />
                 ))}
-                
 
                 {/* Protected Routes */}
                 {protectedRoutes.map((route) => (
