@@ -11,6 +11,14 @@ import {
 } from "@mui/material";
 import { Edit as EditIcon, Save as SaveIcon } from "@mui/icons-material";
 import api from "../../services/api";
+import { fetchSkills, fetchUserSkills, addUserSkill, removeUserSkill } from '../../services/api';
+import Autocomplete from '@mui/material/Autocomplete';
+import Chip from '@mui/material/Chip';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import type { Skill, UserSkill } from '../../types/skill';
 
 interface ProfileData {
   first_name: string;
@@ -36,6 +44,11 @@ const Profile = () => {
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [skills, setSkills] = useState<Skill[]>([]);
+  const [userSkills, setUserSkills] = useState<UserSkill[]>([]);
+  const [addSkillsOpen, setAddSkillsOpen] = useState(false);
+  const [selectedSkills, setSelectedSkills] = useState<Skill[]>([]);
+  const [loadingSkills, setLoadingSkills] = useState(false);
 
   useEffect(() => {
     const fetchProfileData = async () => {
@@ -47,6 +60,16 @@ const Profile = () => {
       }
     };
     fetchProfileData();
+  }, []);
+
+  useEffect(() => {
+    setLoadingSkills(true);
+    Promise.all([fetchSkills(), fetchUserSkills()])
+      .then(([allSkillsRes, userSkillsRes]) => {
+        setSkills(allSkillsRes.data);
+        setUserSkills(userSkillsRes.data);
+      })
+      .finally(() => setLoadingSkills(false));
   }, []);
 
   const handleEdit = () => {
@@ -95,6 +118,26 @@ const Profile = () => {
         [field]: event.target.value,
       });
     };
+
+  const handleAddSkills = async () => {
+    for (const skill of selectedSkills) {
+      if (!userSkills.some(us => us.skill_id === skill.id)) {
+        await addUserSkill(skill.id);
+      }
+    }
+    // Refresh user skills
+    const userSkillsRes = await fetchUserSkills();
+    setUserSkills(userSkillsRes.data);
+    setAddSkillsOpen(false);
+    setSelectedSkills([]);
+  };
+
+  const handleRemoveSkill = async (skill_id: number) => {
+    await removeUserSkill(skill_id);
+    // Refresh user skills
+    const userSkillsRes = await fetchUserSkills();
+    setUserSkills(userSkillsRes.data);
+  };
 
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
@@ -200,6 +243,57 @@ const Profile = () => {
             />
           </Grid>
         </Grid>
+
+        <Box sx={{ mt: 3 }}>
+          <Typography variant="h6" gutterBottom>Skills</Typography>
+          {loadingSkills ? (
+            <Typography variant="body2" color="text.secondary">Loading skills...</Typography>
+          ) : (
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
+              {userSkills.map(skill => (
+                <Chip
+                  key={skill.skill_id}
+                  label={skill.skill_name}
+                  onDelete={() => handleRemoveSkill(skill.skill_id)}
+                  color="primary"
+                  variant="outlined"
+                  sx={{ fontSize: 16 }}
+                />
+              ))}
+              <Button size="small" variant="outlined" sx={{ ml: 1 }} onClick={() => setAddSkillsOpen(true)}>
+                Add Skills
+              </Button>
+            </Box>
+          )}
+        </Box>
+
+        {/* Add Skills Modal */}
+        <Dialog open={addSkillsOpen} onClose={() => setAddSkillsOpen(false)} maxWidth="xs" fullWidth>
+          <DialogTitle>Add Skills</DialogTitle>
+          <DialogContent>
+            <Autocomplete
+              multiple
+              options={skills}
+              getOptionLabel={(option) => option.name}
+              value={selectedSkills}
+              onChange={(_, value) => setSelectedSkills(value)}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Skills"
+                  placeholder="Search and select skills"
+                  margin="normal"
+                  fullWidth
+                />
+              )}
+              sx={{ mt: 2, mb: 1 }}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setAddSkillsOpen(false)}>Cancel</Button>
+            <Button onClick={handleAddSkills} variant="contained">Add</Button>
+          </DialogActions>
+        </Dialog>
       </Paper>
     </Container>
   );

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Box,
   Button,
@@ -64,19 +64,9 @@ export default function SignUp() {
       await signupMutation.mutateAsync(signupData);
       navigate("/");
     } catch (err) {
-      if (err instanceof Error) {
-        // Check if the error message contains field-specific errors
-        if (err.message.includes(":")) {
-          const fieldErrors: ValidationErrors = {};
-          err.message.split("\n").forEach((line) => {
-            const [field, message] = line.split(": ");
-            if (field && message) {
-              fieldErrors[field] = [message];
-            }
-          });
-          setErrors(fieldErrors);
-        }
-      }
+      setErrors({
+        confirmPassword: ["Sign up failed"],
+      });
     }
   };
 

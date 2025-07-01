@@ -21,8 +21,10 @@ import {
 import type { Project } from "../types/project";
 
 import { difficultyColors, categoryColors } from "../constants/projects";
+import { useTheme } from "@mui/material/styles";
 
 function ProjectCard({ project }: { project: Project }) {
+  const theme = useTheme();
   return (
     <Grid size={{ xs: 12, sm: 6, md: 4 }} key={project.id}>
       <Card
@@ -42,7 +44,7 @@ function ProjectCard({ project }: { project: Project }) {
       >
         <CardHeader
           avatar={
-            <Avatar sx={{ bgcolor: "primary.main" }}>
+            <Avatar sx={{ bgcolor: theme.palette.mode === 'dark' ? theme.palette.secondary.main : 'primary.main' }}>
               {project.name.charAt(0).toUpperCase()}
             </Avatar>
           }
@@ -99,7 +101,7 @@ function ProjectCard({ project }: { project: Project }) {
 
           <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
             <TrendingUpIcon
-              sx={{ fontSize: 16, mr: 0.5, color: "text.secondary" }}
+              sx={{ fontSize: 16, mr: 0.5, color: theme.palette.mode === 'dark' ? theme.palette.warning.light : 'text.secondary' }}
             />
             <Typography variant="body2" color="text.secondary">
               Difficulty:
@@ -118,7 +120,7 @@ function ProjectCard({ project }: { project: Project }) {
 
           <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
             <GroupIcon
-              sx={{ fontSize: 16, mr: 0.5, color: "text.secondary" }}
+              sx={{ fontSize: 16, mr: 0.5, color: theme.palette.mode === 'dark' ? theme.palette.secondary.light : 'text.secondary' }}
             />
             <Typography variant="body2" color="text.secondary">
               Team Size: {project.max_team_size}
@@ -127,7 +129,7 @@ function ProjectCard({ project }: { project: Project }) {
 
           <Box sx={{ display: "flex", alignItems: "center" }}>
             <CategoryIcon
-              sx={{ fontSize: 16, mr: 0.5, color: "text.secondary" }}
+              sx={{ fontSize: 16, mr: 0.5, color: theme.palette.mode === 'dark' ? theme.palette.info.light : 'text.secondary' }}
             />
             <Chip
               label={project.category}

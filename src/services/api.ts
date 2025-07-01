@@ -124,4 +124,33 @@ export const enableInvitation = (teamUuid: string, invitationUuid: string) => ap
 export const disableInvitation = (teamUuid: string, invitationUuid: string) => api.post(`/teams/${teamUuid}/invitations/${invitationUuid}/disable/`);
 export const deleteInvitation = (teamUuid: string, invitationUuid: string) => api.delete(`/teams/${teamUuid}/invitations/${invitationUuid}/`);
 
+// Skills API
+export const fetchSkills = () => api.get('/auth/skills/');
+export const fetchUserSkills = () => api.get('/auth/user-skills/');
+export const addUserSkill = (skill_id: number) => api.post('/auth/user-skills/', { skill_id });
+export const removeUserSkill = (skill_id: number) => api.delete(`/auth/user-skills/${skill_id}/`);
+
+// Project submissions API
+export const fetchProjectSubmissions = (projectId: string | number, taskId?: string | number) => {
+  let url = `/projects/${projectId}/submissions`;
+  if (taskId) {
+    url += `?task_id=${taskId}`;
+  }
+  return api.get(url);
+};
+
+export const createSubmission = (
+  projectId: string | number,
+  taskId: string | number,
+  data: { team: string; deployment_url?: string; github_url?: string }
+) => {
+  return api.post(`/projects/${projectId}/tasks/${taskId}/submissions/`, data);
+};
+
+export const registerTeamToProject = (data: { project: number; team: string; deployment_url?: string }) =>
+  api.post('/projects/registrations/', data);
+
+export const fetchProjectRegistrations = (projectId: number) =>
+  api.get(`/projects/registrations/?project=${projectId}`);
+
 export default api;
