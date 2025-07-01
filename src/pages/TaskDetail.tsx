@@ -20,6 +20,16 @@ import {
     ListItemIcon,
     ListItemText,
     Divider,
+    CircularProgress,
+    TextField,
+    MenuItem,
+    FormControl,
+    InputLabel,
+    Select,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
 } from '@mui/material';
 import {
     ArrowBack as ArrowBackIcon,
@@ -30,6 +40,9 @@ import {
     EventNote as EventNoteIcon,
 } from '@mui/icons-material';
 import { useTheme } from "@mui/material/styles";
+import { fetchTeams, fetchProjectRegistrations } from '../services/api';
+import { createSubmission, registerTeamToProject } from '../services/api';
+import type { Team } from '../types/team';
 
 export default function TaskDetail() {
     const navigate = useNavigate();
@@ -38,6 +51,20 @@ export default function TaskDetail() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const theme = useTheme();
+    const [teams, setTeams] = useState<Team[]>([]);
+    const [selectedTeam, setSelectedTeam] = useState<string>('');
+    const [deploymentUrl, setDeploymentUrl] = useState('');
+    const [githubUrl, setGithubUrl] = useState('');
+    const [submitting, setSubmitting] = useState(false);
+    const [submitError, setSubmitError] = useState<string | null>(null);
+    const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
+    const [registerDialogOpen, setRegisterDialogOpen] = useState(false);
+    const [registering, setRegistering] = useState(false);
+    const [registerError, setRegisterError] = useState<string | null>(null);
+    const [registerSuccess, setRegisterSuccess] = useState<string | null>(null);
+    const [registerTeam, setRegisterTeam] = useState<string>('');
+    const [registerDeploymentUrl, setRegisterDeploymentUrl] = useState('');
+    const [registeredTeamUuids, setRegisteredTeamUuids] = useState<string[]>([]);
 
     useEffect(() => {
         const fetchTask = async () => {
@@ -53,6 +80,23 @@ export default function TaskDetail() {
         };
 
         fetchTask();
+
+        // Fetch teams for submission
+        fetchTeams().then(res => {
+            setTeams(res.data);
+        });
+        // Fetch registered teams for this project
+        if (projectId) {
+            fetchProjectRegistrations(Number(projectId)).then(res => {
+                setRegisteredTeamUuids(
+                    res.data.map((reg: any) => {
+                        // Extract UUID from "Team Name (uuid)"
+                        const match = reg.team.match(/\(([0-9a-fA-F-]+)\)$/);
+                        return match ? match[1] : reg.team;
+                    })
+                );
+            });
+        }
     }, [projectId, taskId]);
 
     if (loading) {
@@ -178,23 +222,158 @@ export default function TaskDetail() {
                     </Grid>
                 </Grid>
             </Paper>
-            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, mt: 2 }}>
+                {/* Registration Success/Error */}
+                {registerSuccess && <Alert severity="success">{registerSuccess}</Alert>}
+                {registerError && <Alert severity="error">{registerError}</Alert>}
+                {/* Submission Success/Error */}
+                {submitError && <Alert severity="error">{submitError}</Alert>}
+                {submitSuccess && <Alert severity="success">{submitSuccess}</Alert>}
+                {/* Register Team Button */}
                 <Button
-                    component={Link}
-                    to={`/projects/${projectId}`}
-                    startIcon={<ArrowBackIcon />}
-                    variant={theme.palette.mode === 'dark' ? 'contained' : 'outlined'}
-                    sx={theme.palette.mode === 'dark' ? { fontWeight: 700, boxShadow: 2 } : {}}
+                    variant="outlined"
+                    color="secondary"
+                    onClick={() => setRegisterDialogOpen(true)}
+                    sx={{ mb: 1 }}
                 >
-                    Back to Project
+                    Register Team to Project
                 </Button>
-                <Button
-                    variant="contained"
-                    color="primary"
-                >
-                    Submit
-                </Button>
+                <FormControl fullWidth sx={{ maxWidth: 400 }}>
+                    <InputLabel id="team-label">Team</InputLabel>
+                    <Select
+                        labelId="team-label"
+                        value={selectedTeam}
+                        label="Team"
+                        onChange={e => setSelectedTeam(e.target.value)}
+                        disabled={submitting}
+                    >
+                        {teams.filter(team => registeredTeamUuids.includes(team.uuid)).map(team => (
+                            <MenuItem key={team.uuid} value={team.uuid}>{team.name}</MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
+                <TextField
+                    label="Deployment URL"
+                    value={deploymentUrl}
+                    onChange={e => setDeploymentUrl(e.target.value)}
+                    fullWidth
+                    sx={{ maxWidth: 400 }}
+                    disabled={submitting}
+                />
+                <TextField
+                    label="GitHub URL"
+                    value={githubUrl}
+                    onChange={e => setGithubUrl(e.target.value)}
+                    fullWidth
+                    sx={{ maxWidth: 400 }}
+                    disabled={submitting}
+                />
+                <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', mt: 2 }}>
+                    <Button
+                        component={Link}
+                        to={`/projects/${projectId}`}
+                        startIcon={<ArrowBackIcon />}
+                        variant={theme.palette.mode === 'dark' ? 'contained' : 'outlined'}
+                        sx={theme.palette.mode === 'dark' ? { fontWeight: 700, boxShadow: 2 } : {}}
+                        disabled={submitting}
+                    >
+                        Back to Project
+                    </Button>
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={async () => {
+                            setSubmitting(true);
+                            setSubmitError(null);
+                            setSubmitSuccess(null);
+                            try {
+                                await createSubmission(projectId!, taskId!, {
+                                    team: selectedTeam,
+                                    deployment_url: deploymentUrl,
+                                    github_url: githubUrl,
+                                });
+                                setSubmitSuccess('Submission received and is being processed.');
+                            } catch (err: any) {
+                                setSubmitError(err?.response?.data?.message || 'Submission failed.');
+                            } finally {
+                                setSubmitting(false);
+                            }
+                        }}
+                        disabled={submitting || !selectedTeam}
+                        startIcon={submitting ? <CircularProgress size={20} color="inherit" /> : null}
+                    >
+                        {submitting ? 'Submitting...' : 'Submit'}
+                    </Button>
+                </Box>
             </Box>
+            {/* Register Team Dialog */}
+            <Dialog open={registerDialogOpen} onClose={() => setRegisterDialogOpen(false)}>
+                <DialogTitle>Register Team to Project</DialogTitle>
+                <DialogContent sx={{ minWidth: 350 }}>
+                    <FormControl fullWidth sx={{ mt: 2 }}>
+                        <InputLabel id="register-team-label">Team</InputLabel>
+                        <Select
+                            labelId="register-team-label"
+                            value={registerTeam}
+                            label="Team"
+                            onChange={e => setRegisterTeam(e.target.value)}
+                            disabled={registering}
+                        >
+                            {teams.filter(team => !registeredTeamUuids.includes(team.uuid)).map(team => (
+                                <MenuItem key={team.uuid} value={team.uuid}>{team.name}</MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+                    <TextField
+                        label="Deployment URL"
+                        value={registerDeploymentUrl}
+                        onChange={e => setRegisterDeploymentUrl(e.target.value)}
+                        fullWidth
+                        sx={{ mt: 2 }}
+                        disabled={registering}
+                    />
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setRegisterDialogOpen(false)} disabled={registering}>Cancel</Button>
+                    <Button
+                        variant="contained"
+                        onClick={async () => {
+                            setRegistering(true);
+                            setRegisterError(null);
+                            setRegisterSuccess(null);
+                            try {
+                                await registerTeamToProject({
+                                    project: Number(projectId),
+                                    team: registerTeam,
+                                    deployment_url: registerDeploymentUrl,
+                                });
+                                setRegisterSuccess('Team registered to project!');
+                                setRegisterDialogOpen(false);
+                                // Refresh teams list and registrations
+                                fetchTeams().then(res => setTeams(res.data));
+                                if (projectId) {
+                                    fetchProjectRegistrations(Number(projectId)).then(res => {
+                                        setRegisteredTeamUuids(
+                                            res.data.map((reg: any) => {
+                                                // Extract UUID from "Team Name (uuid)"
+                                                const match = reg.team.match(/\(([0-9a-fA-F-]+)\)$/);
+                                                return match ? match[1] : reg.team;
+                                            })
+                                        );
+                                    });
+                                }
+                            } catch (err: any) {
+                                setRegisterError(err?.response?.data?.message || 'Registration failed.');
+                            } finally {
+                                setRegistering(false);
+                            }
+                        }}
+                        disabled={registering || !registerTeam}
+                    >
+                        {registering ? <CircularProgress size={20} color="inherit" /> : 'Register'}
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Container>
     );
 } 
