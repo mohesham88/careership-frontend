@@ -1,5 +1,5 @@
 import React from 'react';
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import {
   Container,
   Typography,
@@ -47,6 +47,7 @@ export default function ProjectDetail() {
   const [showCertificateNotification, setShowCertificateNotification] =
     useState(false);
   const requestCertificateMutation = useRequestCertificate();
+  const navigate = useNavigate();
 
   const renderSkeleton = () => (
     <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -99,7 +100,16 @@ export default function ProjectDetail() {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ py: 2 }}>
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+        <Button
+          variant="outlined"
+          color="primary"
+          onClick={() => navigate(`/projects/${id}/submissions`)}
+        >
+          View Submissions
+        </Button>
+      </Box>
       {/* Breadcrumbs */}
       <Breadcrumbs sx={{ mb: 3 }}>
         <Link
