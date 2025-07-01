@@ -130,4 +130,13 @@ export const fetchUserSkills = () => api.get('/auth/user-skills/');
 export const addUserSkill = (skill_id: number) => api.post('/auth/user-skills/', { skill_id });
 export const removeUserSkill = (skill_id: number) => api.delete(`/auth/user-skills/${skill_id}/`);
 
+// Project submissions API
+export const fetchProjectSubmissions = (projectId: string | number, taskId?: string | number) => {
+  let url = `/projects/${projectId}/submissions`;
+  if (taskId) {
+    url += `?task_id=${taskId}`;
+  }
+  return api.get(url);
+};
+
 export default api;
