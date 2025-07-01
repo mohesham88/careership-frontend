@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import {
   Container,
@@ -39,6 +39,7 @@ import {
 } from "../../hooks/useCertificateHooks";
 import { useState } from "react";
 import { useTheme } from "@mui/material/styles";
+import RegisterProjectDialog from "../../components/Projects/RegisterProjectDialog";
 
 export default function ProjectDetail() {
   const { id } = useParams<{ id: string }>();
@@ -50,6 +51,7 @@ export default function ProjectDetail() {
   const requestCertificateMutation = useRequestCertificate();
   const navigate = useNavigate();
   const theme = useTheme();
+  const [registerDialogOpen, setRegisterDialogOpen] = useState(false);
 
   const renderSkeleton = () => (
     <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -103,12 +105,23 @@ export default function ProjectDetail() {
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+      <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2, gap: 2 }}>
         <Button
-          variant={theme.palette.mode === 'dark' ? 'contained' : 'outlined'}
+          variant={theme.palette.mode === "dark" ? "contained" : "outlined"}
+          color="secondary"
+          onClick={() => setRegisterDialogOpen(true)}
+        >
+          Register Team to Project
+        </Button>
+        <Button
+          variant={theme.palette.mode === "dark" ? "contained" : "outlined"}
           color="primary"
           onClick={() => navigate(`/projects/${id}/submissions`)}
-          sx={theme.palette.mode === 'dark' ? { fontWeight: 700, boxShadow: 2 } : {}}
+          sx={
+            theme.palette.mode === "dark"
+              ? { fontWeight: 700, boxShadow: 2 }
+              : {}
+          }
         >
           View Submissions
         </Button>
@@ -163,7 +176,10 @@ export default function ProjectDetail() {
               sx={{
                 width: 64,
                 height: 64,
-                bgcolor: theme.palette.mode === 'dark' ? theme.palette.secondary.main : 'primary.main',
+                bgcolor:
+                  theme.palette.mode === "dark"
+                    ? theme.palette.secondary.main
+                    : "primary.main",
                 fontSize: "1.5rem",
               }}
             >
@@ -176,7 +192,15 @@ export default function ProjectDetail() {
               <Box
                 sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}
               >
-                <CategoryIcon sx={{ fontSize: 20, color: theme.palette.mode === 'dark' ? theme.palette.info.light : 'action.active' }} />
+                <CategoryIcon
+                  sx={{
+                    fontSize: 20,
+                    color:
+                      theme.palette.mode === "dark"
+                        ? theme.palette.info.light
+                        : "action.active",
+                  }}
+                />
                 <Chip
                   label={project.category}
                   color={
@@ -202,9 +226,19 @@ export default function ProjectDetail() {
         </Box>
 
         <Grid container spacing={0} alignItems="stretch">
-          <Grid size={{ xs: 12, sm: 6, md: 3 }} sx={{ pr: { md: 2 }, borderRight: { md: '1px solid #eee' } }}>
+          <Grid
+            size={{ xs: 12, sm: 6, md: 3 }}
+            sx={{ pr: { md: 2 }, borderRight: { md: "1px solid #eee" } }}
+          >
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <TrendingUpIcon sx={{ color: theme.palette.mode === 'dark' ? theme.palette.warning.light : 'action.active' }} />
+              <TrendingUpIcon
+                sx={{
+                  color:
+                    theme.palette.mode === "dark"
+                      ? theme.palette.warning.light
+                      : "action.active",
+                }}
+              />
               <Typography variant="body2" color="text.secondary">
                 Difficulty:
               </Typography>
@@ -219,17 +253,37 @@ export default function ProjectDetail() {
               />
             </Box>
           </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 3 }} sx={{ pr: { md: 2 }, borderRight: { md: '1px solid #eee' } }}>
+          <Grid
+            size={{ xs: 12, sm: 6, md: 3 }}
+            sx={{ pr: { md: 2 }, borderRight: { md: "1px solid #eee" } }}
+          >
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <GroupIcon sx={{ color: theme.palette.mode === 'dark' ? theme.palette.secondary.light : 'action.active' }} />
+              <GroupIcon
+                sx={{
+                  color:
+                    theme.palette.mode === "dark"
+                      ? theme.palette.secondary.light
+                      : "action.active",
+                }}
+              />
               <Typography variant="body2" color="text.secondary">
                 Team Size: {project.max_team_size}
               </Typography>
             </Box>
           </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 3 }} sx={{ pr: { md: 2 }, borderRight: { md: '1px solid #eee' } }}>
+          <Grid
+            size={{ xs: 12, sm: 6, md: 3 }}
+            sx={{ pr: { md: 2 }, borderRight: { md: "1px solid #eee" } }}
+          >
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <AssignmentIcon sx={{ color: theme.palette.mode === 'dark' ? theme.palette.success.light : 'action.active' }} />
+              <AssignmentIcon
+                sx={{
+                  color:
+                    theme.palette.mode === "dark"
+                      ? theme.palette.success.light
+                      : "action.active",
+                }}
+              />
               <Typography variant="body2" color="text.secondary">
                 Tasks: {project.tasks?.length || 0}
               </Typography>
@@ -237,7 +291,14 @@ export default function ProjectDetail() {
           </Grid>
           <Grid size={{ xs: 12, sm: 6, md: 3 }} sx={{ pl: { md: 2 } }}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <ScheduleIcon sx={{ color: theme.palette.mode === 'dark' ? theme.palette.primary.light : 'action.active' }} />
+              <ScheduleIcon
+                sx={{
+                  color:
+                    theme.palette.mode === "dark"
+                      ? theme.palette.primary.light
+                      : "action.active",
+                }}
+              />
               <Typography variant="body2" color="text.secondary">
                 Created: {formatDate(project.created_at)}
               </Typography>
@@ -248,9 +309,11 @@ export default function ProjectDetail() {
 
       {/* Tasks Section */}
       <Paper elevation={4} sx={{ p: 3, borderRadius: 4, mb: 5 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+        <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
           <AssignmentIcon sx={{ mr: 1 }} />
-          <Typography variant="h5" fontWeight={600}>Project Tasks</Typography>
+          <Typography variant="h5" fontWeight={600}>
+            Project Tasks
+          </Typography>
         </Box>
         <Divider sx={{ mb: 2 }} />
         {project.tasks && project.tasks.length > 0 ? (
@@ -260,24 +323,26 @@ export default function ProjectDetail() {
                 component={Link}
                 to={`/projects/${project.id}/tasks/${task.id}`}
                 sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
                   p: 2,
                   borderRadius: 2,
-                  transition: 'background 0.2s, box-shadow 0.2s',
-                  textDecoration: 'none',
-                  color: 'inherit',
-                  '&:hover': { background: '#f5f5f5', boxShadow: 2 }
+                  transition: "background 0.2s, box-shadow 0.2s",
+                  textDecoration: "none",
+                  color: "inherit",
+                  "&:hover": { background: "#f5f5f5", boxShadow: 2 },
                 }}
               >
                 <Box>
-                  <Typography variant="subtitle1" fontWeight={500}>{task.name}</Typography>
+                  <Typography variant="subtitle1" fontWeight={500}>
+                    {task.name}
+                  </Typography>
                   <Typography variant="caption" color="text.secondary">
                     Created: {formatDate(task.created_at)}
                   </Typography>
                 </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                   <Chip label={task.difficulty_level} size="small" />
                   <ChevronRightIcon color="action" />
                 </Box>
@@ -286,7 +351,11 @@ export default function ProjectDetail() {
             </React.Fragment>
           ))
         ) : (
-          <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{ textAlign: "center", py: 4 }}
+          >
             No tasks available
           </Typography>
         )}
@@ -297,10 +366,14 @@ export default function ProjectDetail() {
         <Button
           component={Link}
           to="/projects"
-          variant={theme.palette.mode === 'dark' ? 'contained' : 'outlined'}
+          variant={theme.palette.mode === "dark" ? "contained" : "outlined"}
           startIcon={<ArrowBackIcon />}
           size="large"
-          sx={theme.palette.mode === 'dark' ? { fontWeight: 700, boxShadow: 2 } : {}}
+          sx={
+            theme.palette.mode === "dark"
+              ? { fontWeight: 700, boxShadow: 2 }
+              : {}
+          }
         >
           Back to Projects
         </Button>
@@ -312,6 +385,16 @@ export default function ProjectDetail() {
         autoHideDuration={6000}
         onClose={() => setShowCertificateNotification(false)}
         message="Certificate request submitted successfully!"
+      />
+
+      <RegisterProjectDialog
+        open={registerDialogOpen}
+        onClose={() => setRegisterDialogOpen(false)}
+        projectId={id}
+        onRegisterSuccess={() => {
+          // Optionally refresh project data or show a notification
+          setRegisterDialogOpen(false);
+        }}
       />
     </Container>
   );

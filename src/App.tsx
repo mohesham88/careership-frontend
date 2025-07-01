@@ -24,10 +24,10 @@ import CertificateDetails from "./pages/Certificates/CertificateDetails";
 import OAuthCallback from "./pages/Users/OAuthCallback";
 import Home from "./pages/Home";
 import { darkPalette, lightPalette } from "./theme/palette";
-import Teams from "./pages/Teams";
-import TeamDetail from "./pages/TeamDetail";
-import CreateAIProject from "./pages/CreateAIProject";
-import AcceptInvitation from "./pages/AcceptInvitation";
+import Teams from "./pages/Teams/Teams";
+import TeamDetail from "./pages/Teams/TeamDetail";
+import CreateAIProject from "./pages/Projects/CreateAIProject";
+import AcceptInvitation from "./pages/Teams/AcceptInvitation";
 import ProjectSubmissions from "./pages/Projects/ProjectSubmissions";
 
 // Public routes that don't require authentication
