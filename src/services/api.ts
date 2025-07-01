@@ -139,4 +139,18 @@ export const fetchProjectSubmissions = (projectId: string | number, taskId?: str
   return api.get(url);
 };
 
+export const createSubmission = (
+  projectId: string | number,
+  taskId: string | number,
+  data: { team: string; deployment_url?: string; github_url?: string }
+) => {
+  return api.post(`/projects/${projectId}/tasks/${taskId}/submissions/`, data);
+};
+
+export const registerTeamToProject = (data: { project: number; team: string; deployment_url?: string }) =>
+  api.post('/projects/registrations/', data);
+
+export const fetchProjectRegistrations = (projectId: number) =>
+  api.get(`/projects/registrations/?project=${projectId}`);
+
 export default api;
