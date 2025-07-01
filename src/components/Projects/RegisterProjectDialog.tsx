@@ -54,7 +54,8 @@ function RegisterProjectDialog({
           res.data.map((reg: any) => {
             // Extract UUID from "Team Name (uuid)"
             const match = reg.team.match(/\(([0-9a-fA-F-]+)\)$/);
-            return match ? match[1] : reg.team;
+            const sameProject = reg.project.id === Number(projectId);
+            return match && sameProject ? match[1] : reg.team;
           })
         );
       });
