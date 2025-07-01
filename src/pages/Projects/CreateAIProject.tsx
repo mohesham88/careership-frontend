@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useAIProjectStore } from "../store/aiProjectStore";
+import { useAIProjectStore } from "../../store/aiProjectStore";
 import {
   Box,
   Typography,

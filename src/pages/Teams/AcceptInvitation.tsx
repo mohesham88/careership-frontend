@@ -1,9 +1,22 @@
-import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Container, Typography, Box, CircularProgress, Alert, Button, Paper, Divider } from '@mui/material';
-import { Email as EmailIcon, CheckCircle as CheckCircleIcon, Cancel as CancelIcon } from '@mui/icons-material';
-import type { Invitation } from '../types/team';
-import { fetchInvitation, acceptInvitation } from '../services/api';
+import { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import {
+  Container,
+  Typography,
+  Box,
+  CircularProgress,
+  Alert,
+  Button,
+  Paper,
+  Divider,
+} from "@mui/material";
+import {
+  Email as EmailIcon,
+  CheckCircle as CheckCircleIcon,
+  Cancel as CancelIcon,
+} from "@mui/icons-material";
+import type { Invitation } from "../../types/team";
+import { fetchInvitation, acceptInvitation } from "../../services/teams";
 
 export default function AcceptInvitation() {
   const { team_uuid, pk } = useParams<{ team_uuid: string; pk: string }>();
@@ -17,18 +30,18 @@ export default function AcceptInvitation() {
 
   useEffect(() => {
     if (!team_uuid || !pk) {
-      setError('Invalid invitation link');
+      setError("Invalid invitation link");
       setLoading(false);
       return;
     }
     setLoading(true);
     fetchInvitation(team_uuid, pk)
-      .then(res => {
+      .then((res) => {
         setInvitation(res.data);
         setLoading(false);
       })
       .catch(() => {
-        setError('Failed to load invitation details');
+        setError("Failed to load invitation details");
         setLoading(false);
       });
   }, [team_uuid, pk]);
@@ -39,23 +52,25 @@ export default function AcceptInvitation() {
     setError(null);
     try {
       await acceptInvitation(team_uuid, pk);
-      setSuccess('You have successfully joined the team!');
+      setSuccess("You have successfully joined the team!");
       setTimeout(() => {
-        navigate('/teams');
+        navigate("/teams");
       }, 2000);
     } catch (e) {
-      setError('Failed to accept invitation. It may have expired or been disabled.');
+      setError(
+        "Failed to accept invitation. It may have expired or been disabled."
+      );
     } finally {
       setAccepting(false);
     }
   };
 
   const handleDecline = () => {
-    navigate('/teams');
+    navigate("/teams");
   };
 
   const getUserFacingInvitationLink = (inv: Invitation) => {
-    if (inv.invitation_url && inv.invitation_url.startsWith('http')) {
+    if (inv.invitation_url && inv.invitation_url.startsWith("http")) {
       return inv.invitation_url;
     }
     return `${window.location.origin}/teams/${team_uuid}/invitations/${inv.uuid}/accept`;
@@ -64,7 +79,7 @@ export default function AcceptInvitation() {
   if (loading) {
     return (
       <Container maxWidth="md" sx={{ py: 6 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+        <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
           <CircularProgress />
         </Box>
       </Container>
@@ -77,7 +92,7 @@ export default function AcceptInvitation() {
         <Alert severity="error" sx={{ mb: 3 }}>
           {error}
         </Alert>
-        <Button variant="contained" onClick={() => navigate('/teams')}>
+        <Button variant="contained" onClick={() => navigate("/teams")}>
           Go to Teams
         </Button>
       </Container>
@@ -107,7 +122,7 @@ export default function AcceptInvitation() {
 
   return (
     <Container maxWidth="md" sx={{ py: 6 }}>
-      <Paper elevation={3} sx={{ p: 4, textAlign: 'center' }}>
+      <Paper elevation={3} sx={{ p: 4, textAlign: "center" }}>
         <Box sx={{ mb: 3 }}>
           <Typography variant="h4" fontWeight={700}>
             Team Invitation
@@ -118,7 +133,15 @@ export default function AcceptInvitation() {
         </Box>
         <Divider sx={{ my: 3 }} />
         <Box sx={{ mb: 4 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mb: 2 }}>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 1,
+              mb: 2,
+            }}
+          >
             <EmailIcon fontSize="small" color="action" />
             <Typography variant="body2" color="text.secondary">
               Invitation expires in: {invitation.expires_in_days} days
@@ -130,7 +153,7 @@ export default function AcceptInvitation() {
             </Alert>
           )}
         </Box>
-        <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
+        <Box sx={{ display: "flex", gap: 2, justifyContent: "center" }}>
           <Button
             variant="contained"
             color="primary"
@@ -139,7 +162,7 @@ export default function AcceptInvitation() {
             onClick={handleAccept}
             disabled={accepting || !invitation.is_active}
           >
-            {accepting ? 'Accepting...' : 'Accept Invitation'}
+            {accepting ? "Accepting..." : "Accept Invitation"}
           </Button>
           <Button
             variant="outlined"
@@ -155,4 +178,4 @@ export default function AcceptInvitation() {
       </Paper>
     </Container>
   );
-} 
+}

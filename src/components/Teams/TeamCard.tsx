@@ -1,7 +1,7 @@
 import { Card, CardContent, CardActions, Typography, Box, Button, Avatar, CardHeader, Stack, Tooltip } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import { Group as GroupIcon, Person as PersonIcon } from "@mui/icons-material";
-import type { Team } from "../types/team";
+import type { Team } from "../../types/team";
 import { useTheme } from "@mui/material/styles";
 
 function TeamCard({ team, onViewDetails }: { team: Team; onViewDetails?: (team: Team) => void }) {
