@@ -27,6 +27,7 @@ import { darkPalette, lightPalette } from "./theme/palette";
 import Teams from "./pages/Teams";
 import TeamDetail from "./pages/TeamDetail";
 import AcceptInvitation from "./pages/AcceptInvitation";
+import ProjectSubmissions from "./pages/Projects/ProjectSubmissions";
 
 // Public routes that don't require authentication
 const publicRoutes = [
@@ -81,6 +82,14 @@ const protectedRoutes = [
   {
     path: "/teams/:uuid",
     element: <TeamDetail />,
+  },
+  {
+    path: "/projects/:projectId/submissions",
+    element: <ProjectSubmissions />,
+  },
+  {
+    path: "/projects/:projectId/tasks/:taskId/submissions",
+    element: <ProjectSubmissions />,
   },
   // Add more protected routes here
   // Example:
