@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import type { Task } from '../types/project';
 import api from '../services/api';
 import {
@@ -31,6 +31,7 @@ import {
 } from '@mui/icons-material';
 
 export default function TaskDetail() {
+    const navigate = useNavigate();
     const { projectId, taskId } = useParams<{ projectId: string; taskId: string }>();
     const [task, setTask] = useState<Task | null>(null);
     const [loading, setLoading] = useState(true);
@@ -91,6 +92,15 @@ export default function TaskDetail() {
 
     return (
         <Container maxWidth="md" sx={{ py: 6 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+                <Button
+                    variant="outlined"
+                    color="primary"
+                    onClick={() => navigate(`/projects/${projectId}/tasks/${taskId}/submissions`)}
+                >
+                    View Submissions
+                </Button>
+            </Box>
             {/* Breadcrumbs */}
             <Breadcrumbs sx={{ mb: 3, ml: 0 }}>
                 <Link
