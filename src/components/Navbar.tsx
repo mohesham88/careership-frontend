@@ -12,6 +12,8 @@ import { Brightness4, Brightness7, AccountCircle } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 import logo from "../assets/logo.png";
+import { useLocation } from "react-router-dom";
+import { useTheme } from "@mui/material/styles";
 
 interface NavbarProps {
   darkMode: boolean;
@@ -21,6 +23,8 @@ interface NavbarProps {
 export default function Navbar({ darkMode, onDarkModeToggle }: NavbarProps) {
   const navigate = useNavigate();
   const { isAuthenticated, logout } = useAuthStore();
+  const location = useLocation();
+  const theme = useTheme();
 
   const handleLogout = () => {
     logout();
