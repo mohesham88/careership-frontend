@@ -163,7 +163,7 @@ export default function ProjectDetail() {
               sx={{
                 width: 64,
                 height: 64,
-                bgcolor: "primary.main",
+                bgcolor: theme.palette.mode === 'dark' ? theme.palette.secondary.main : 'primary.main',
                 fontSize: "1.5rem",
               }}
             >
@@ -176,7 +176,7 @@ export default function ProjectDetail() {
               <Box
                 sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}
               >
-                <CategoryIcon color="action" sx={{ fontSize: 20 }} />
+                <CategoryIcon sx={{ fontSize: 20, color: theme.palette.mode === 'dark' ? theme.palette.info.light : 'action.active' }} />
                 <Chip
                   label={project.category}
                   color={
@@ -204,7 +204,7 @@ export default function ProjectDetail() {
         <Grid container spacing={0} alignItems="stretch">
           <Grid size={{ xs: 12, sm: 6, md: 3 }} sx={{ pr: { md: 2 }, borderRight: { md: '1px solid #eee' } }}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <TrendingUpIcon color="action" />
+              <TrendingUpIcon sx={{ color: theme.palette.mode === 'dark' ? theme.palette.warning.light : 'action.active' }} />
               <Typography variant="body2" color="text.secondary">
                 Difficulty:
               </Typography>
@@ -221,7 +221,7 @@ export default function ProjectDetail() {
           </Grid>
           <Grid size={{ xs: 12, sm: 6, md: 3 }} sx={{ pr: { md: 2 }, borderRight: { md: '1px solid #eee' } }}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <GroupIcon color="action" />
+              <GroupIcon sx={{ color: theme.palette.mode === 'dark' ? theme.palette.secondary.light : 'action.active' }} />
               <Typography variant="body2" color="text.secondary">
                 Team Size: {project.max_team_size}
               </Typography>
@@ -229,7 +229,7 @@ export default function ProjectDetail() {
           </Grid>
           <Grid size={{ xs: 12, sm: 6, md: 3 }} sx={{ pr: { md: 2 }, borderRight: { md: '1px solid #eee' } }}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <AssignmentIcon color="action" />
+              <AssignmentIcon sx={{ color: theme.palette.mode === 'dark' ? theme.palette.success.light : 'action.active' }} />
               <Typography variant="body2" color="text.secondary">
                 Tasks: {project.tasks?.length || 0}
               </Typography>
@@ -237,7 +237,7 @@ export default function ProjectDetail() {
           </Grid>
           <Grid size={{ xs: 12, sm: 6, md: 3 }} sx={{ pl: { md: 2 } }}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <ScheduleIcon color="action" />
+              <ScheduleIcon sx={{ color: theme.palette.mode === 'dark' ? theme.palette.primary.light : 'action.active' }} />
               <Typography variant="body2" color="text.secondary">
                 Created: {formatDate(project.created_at)}
               </Typography>

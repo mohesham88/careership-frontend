@@ -2,8 +2,10 @@ import { Card, CardContent, CardActions, Typography, Box, Button, Avatar, CardHe
 import Grid from "@mui/material/Grid";
 import { Group as GroupIcon, Person as PersonIcon } from "@mui/icons-material";
 import type { Team } from "../types/team";
+import { useTheme } from "@mui/material/styles";
 
 function TeamCard({ team, onViewDetails }: { team: Team; onViewDetails?: (team: Team) => void }) {
+  const theme = useTheme();
   return (
     <Grid size={{ xs: 12, sm: 6, md: 4 }} key={team.uuid} component="div">
       <Card
@@ -20,7 +22,7 @@ function TeamCard({ team, onViewDetails }: { team: Team; onViewDetails?: (team: 
       >
         <CardHeader
           avatar={
-            <Avatar sx={{ bgcolor: "primary.main" }}>
+            <Avatar sx={{ bgcolor: theme.palette.mode === 'dark' ? theme.palette.secondary.main : 'primary.main' }}>
               {team.name.charAt(0).toUpperCase()}
             </Avatar>
           }
@@ -44,7 +46,13 @@ function TeamCard({ team, onViewDetails }: { team: Team; onViewDetails?: (team: 
           }
         />
         <CardActions sx={{ p: 2, pt: 0 }}>
-          <Button size="small" color="primary" sx={{ width: "100%" }} onClick={() => onViewDetails?.(team)}>
+          <Button
+            size="small"
+            color="primary"
+            variant={theme.palette.mode === 'dark' ? 'contained' : 'outlined'}
+            sx={{ width: "100%", fontWeight: theme.palette.mode === 'dark' ? 700 : 400, boxShadow: theme.palette.mode === 'dark' ? 2 : undefined }}
+            onClick={() => onViewDetails?.(team)}
+          >
             View Details
           </Button>
         </CardActions>

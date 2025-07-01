@@ -102,7 +102,7 @@ export default function Navbar({ darkMode, onDarkModeToggle }: NavbarProps) {
                 onClick={() => navigate("/profile")}
                 sx={{ p: 0 }}
               >
-                <Avatar sx={{ bgcolor: "primary.main", width: 36, height: 36 }}>
+                <Avatar sx={{ bgcolor: theme.palette.mode === 'dark' ? theme.palette.secondary.main : 'primary.main', width: 36, height: 36 }}>
                   <AccountCircle />
                 </Avatar>
               </IconButton>
