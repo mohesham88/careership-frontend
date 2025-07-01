@@ -38,6 +38,7 @@ import {
   useRequestCertificate,
 } from "../../hooks/useCertificateHooks";
 import { useState } from "react";
+import { useTheme } from "@mui/material/styles";
 
 export default function ProjectDetail() {
   const { id } = useParams<{ id: string }>();
@@ -48,6 +49,7 @@ export default function ProjectDetail() {
     useState(false);
   const requestCertificateMutation = useRequestCertificate();
   const navigate = useNavigate();
+  const theme = useTheme();
 
   const renderSkeleton = () => (
     <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -103,9 +105,10 @@ export default function ProjectDetail() {
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
         <Button
-          variant="outlined"
+          variant={theme.palette.mode === 'dark' ? 'contained' : 'outlined'}
           color="primary"
           onClick={() => navigate(`/projects/${id}/submissions`)}
+          sx={theme.palette.mode === 'dark' ? { fontWeight: 700, boxShadow: 2 } : {}}
         >
           View Submissions
         </Button>
@@ -294,9 +297,10 @@ export default function ProjectDetail() {
         <Button
           component={Link}
           to="/projects"
-          variant="outlined"
+          variant={theme.palette.mode === 'dark' ? 'contained' : 'outlined'}
           startIcon={<ArrowBackIcon />}
           size="large"
+          sx={theme.palette.mode === 'dark' ? { fontWeight: 700, boxShadow: 2 } : {}}
         >
           Back to Projects
         </Button>

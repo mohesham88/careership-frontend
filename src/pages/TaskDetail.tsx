@@ -29,6 +29,7 @@ import {
     FactCheck as FactCheckIcon,
     EventNote as EventNoteIcon,
 } from '@mui/icons-material';
+import { useTheme } from "@mui/material/styles";
 
 export default function TaskDetail() {
     const navigate = useNavigate();
@@ -36,6 +37,7 @@ export default function TaskDetail() {
     const [task, setTask] = useState<Task | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const theme = useTheme();
 
     useEffect(() => {
         const fetchTask = async () => {
@@ -82,7 +84,8 @@ export default function TaskDetail() {
                     component={Link}
                     to={`/projects/${projectId}`}
                     startIcon={<ArrowBackIcon />}
-                    variant="outlined"
+                    variant={theme.palette.mode === 'dark' ? 'contained' : 'outlined'}
+                    sx={theme.palette.mode === 'dark' ? { fontWeight: 700, boxShadow: 2 } : {}}
                 >
                     Back to Project
                 </Button>
@@ -94,9 +97,10 @@ export default function TaskDetail() {
         <Container maxWidth="md" sx={{ py: 6 }}>
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
                 <Button
-                    variant="outlined"
+                    variant={theme.palette.mode === 'dark' ? 'contained' : 'outlined'}
                     color="primary"
                     onClick={() => navigate(`/projects/${projectId}/tasks/${taskId}/submissions`)}
+                    sx={theme.palette.mode === 'dark' ? { fontWeight: 700, boxShadow: 2 } : {}}
                 >
                     View Submissions
                 </Button>
@@ -179,7 +183,8 @@ export default function TaskDetail() {
                     component={Link}
                     to={`/projects/${projectId}`}
                     startIcon={<ArrowBackIcon />}
-                    variant="outlined"
+                    variant={theme.palette.mode === 'dark' ? 'contained' : 'outlined'}
+                    sx={theme.palette.mode === 'dark' ? { fontWeight: 700, boxShadow: 2 } : {}}
                 >
                     Back to Project
                 </Button>
