@@ -8,6 +8,8 @@ import {
   Button,
   TextField,
   Grid,
+  Alert,
+  Snackbar,
 } from "@mui/material";
 import { Edit as EditIcon, Save as SaveIcon } from "@mui/icons-material";
 import api from "../../services/api";
@@ -30,6 +32,13 @@ interface ProfileData {
   avatar: string | null;
 }
 
+const getAvatarUrl = (avatar: string | null) => {
+  if (!avatar) return undefined;
+  if (avatar.startsWith("http")) return avatar;
+  const base = import.meta.env.VITE_API_URL?.replace(/\/api\/v1$/, "") || "";
+  return base + avatar;
+};
+
 const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [profileData, setProfileData] = useState<ProfileData>({
@@ -49,6 +58,10 @@ const Profile = () => {
   const [addSkillsOpen, setAddSkillsOpen] = useState(false);
   const [selectedSkills, setSelectedSkills] = useState<Skill[]>([]);
   const [loadingSkills, setLoadingSkills] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [avatarUpdated, setAvatarUpdated] = useState(false);
 
   useEffect(() => {
     const fetchProfileData = async () => {
@@ -72,6 +85,13 @@ const Profile = () => {
       .finally(() => setLoadingSkills(false));
   }, []);
 
+  useEffect(() => {
+    if (avatarUpdated) {
+      // Reset after profile data is loaded
+      setAvatarUpdated(false);
+    }
+  }, [profileData.avatar]);
+
   const handleEdit = () => {
     setIsEditing(true);
   };
@@ -88,25 +108,45 @@ const Profile = () => {
     }
   };
 
-  const formData = new FormData();
-  if (profileData.first_name)
-    formData.append("first_name", profileData.first_name);
-  if (profileData.last_name)
-    formData.append("last_name", profileData.last_name);
-  if (profileData.email) formData.append("email", profileData.email);
-  if (profileData.user_type)
-    formData.append("user_type", profileData.user_type);
-  if (profileData.phone) formData.append("phone", profileData.phone);
-  if (avatarFile) formData.append("avatar", avatarFile);
-
   const handleSave = async () => {
-    setIsEditing(false);
+    setIsSaving(true);
+    setError(null);
+    setSuccessMessage(null);
+    
     try {
+      const formData = new FormData();
+      if (profileData.first_name)
+        formData.append("first_name", profileData.first_name);
+      if (profileData.last_name)
+        formData.append("last_name", profileData.last_name);
+      if (profileData.email) formData.append("email", profileData.email);
+      if (profileData.user_type)
+        formData.append("user_type", profileData.user_type);
+      if (profileData.phone) formData.append("phone", profileData.phone);
+      if (avatarFile) formData.append("avatar", avatarFile);
+
       await api.patch("/auth/profile/", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-    } catch (error) {
+      
+      // Refresh profile data to get updated avatar URL
+      const response = await api.get("/auth/profile/");
+      setProfileData(response.data);
+      
+      // Clear the avatar file and preview after successful save
+      setAvatarFile(null);
+      setAvatarPreview(null);
+      
+      setIsEditing(false);
+      setSuccessMessage("Profile updated successfully!");
+      setAvatarUpdated(true); // Mark avatar as updated
+    } catch (error: any) {
       console.error("Error saving profile data:", error);
+      setError(error.response?.data?.message || "Failed to update profile. Please try again.");
+      // Re-enable editing if save failed
+      setIsEditing(true);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -142,33 +182,49 @@ const Profile = () => {
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
       <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }}>
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            mb: 4,
-          }}
-        >
-          <Avatar
-            sx={{
-              width: 120,
-              height: 120,
-              mb: 2,
-              cursor: isEditing ? "pointer" : "default",
-            }}
-            src={avatarPreview || profileData.avatar || undefined}
-            alt={`${profileData.first_name} ${profileData.last_name}`}
-            onClick={() => isEditing && fileInputRef.current?.click()}
-          />
-          {isEditing && (
-            <input
-              type="file"
-              accept="image/*"
-              style={{ display: "none" }}
-              ref={fileInputRef}
-              onChange={handleAvatarChange}
+        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", mb: 4 }}>
+          <Box sx={{ position: "relative", mb: 0 }}>
+            <Avatar
+              sx={{
+                width: 120,
+                height: 120,
+                cursor: isEditing ? "pointer" : "default",
+                border: isEditing ? "3px dashed #ccc" : "none",
+                "&:hover": isEditing ? {
+                  border: "3px dashed #666",
+                  opacity: 0.8,
+                } : {},
+              }}
+              src={
+                avatarPreview ||
+                (profileData.avatar
+                  ? getAvatarUrl(profileData.avatar) + (avatarUpdated ? `?t=${Date.now()}` : "")
+                  : undefined)
+              }
+              alt={`${profileData.first_name} ${profileData.last_name}`}
+              onClick={() => isEditing && fileInputRef.current?.click()}
             />
+            {isEditing && (
+              <input
+                type="file"
+                accept="image/*"
+                style={{ display: "none" }}
+                ref={fileInputRef}
+                onChange={handleAvatarChange}
+              />
+            )}
+          </Box>
+          {isEditing && (
+            <Typography
+              variant="caption"
+              sx={{
+                mt: 1,
+                color: "text.secondary",
+                textAlign: "center",
+              }}
+            >
+              Click to change photo
+            </Typography>
           )}
           <Typography variant="h4" component="h1" gutterBottom>
             {`${profileData.first_name} ${profileData.last_name}`}
@@ -187,8 +243,9 @@ const Profile = () => {
                   color="primary"
                   startIcon={<SaveIcon />}
                   onClick={handleSave}
+                  disabled={isSaving}
                 >
-                  Save Changes
+                  {isSaving ? "Saving..." : "Save Changes"}
                 </Button>
               ) : (
                 <Button
@@ -295,6 +352,29 @@ const Profile = () => {
           </DialogActions>
         </Dialog>
       </Paper>
+      
+      {/* Error Alert */}
+      {error && (
+        <Alert severity="error" sx={{ mt: 2 }}>
+          {error}
+        </Alert>
+      )}
+      
+      {/* Success Notification */}
+      <Snackbar
+        open={!!successMessage}
+        autoHideDuration={6000}
+        onClose={() => setSuccessMessage(null)}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setSuccessMessage(null)}
+          severity="success"
+          sx={{ width: "100%" }}
+        >
+          {successMessage}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };
