@@ -406,19 +406,19 @@ const Home = () => {
                         {project.desc}
                       </Typography>
                       <Stack direction="row" spacing={1} sx={{ mb: 1 }}>
-                        <Typography variant="caption" color="primary">
+                        <Typography variant="caption" color="text.primary">
                           {project.category}
                         </Typography>
-                        <Typography variant="caption" color="secondary">
+                        <Typography variant="caption" color="text.secondary">
                           Team: {project.team}
                         </Typography>
-                        <Typography variant="caption" color="success.main">
+                        <Typography variant="caption" color="text.secondary">
                           {project.difficulty}
                         </Typography>
                       </Stack>
                       <Button
                         variant="outlined"
-                        color="primary"
+                        color="secondary"
                         size="small"
                         href="/projects"
                         sx={{ fontWeight: 600, borderRadius: 2 }}
