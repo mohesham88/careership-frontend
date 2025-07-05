@@ -11,16 +11,26 @@ import {
   Alert,
   Snackbar,
 } from "@mui/material";
-import { Edit as EditIcon, Save as SaveIcon } from "@mui/icons-material";
+import {
+  Edit as EditIcon,
+  Save as SaveIcon,
+  School as SchoolIcon,
+} from "@mui/icons-material";
+import { Link } from "react-router-dom";
 import api from "../../services/api";
-import { fetchSkills, fetchUserSkills, addUserSkill, removeUserSkill } from '../../services/api';
-import Autocomplete from '@mui/material/Autocomplete';
-import Chip from '@mui/material/Chip';
-import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogActions from '@mui/material/DialogActions';
-import type { Skill, UserSkill } from '../../types/skill';
+import {
+  fetchSkills,
+  fetchUserSkills,
+  addUserSkill,
+  removeUserSkill,
+} from "../../services/api";
+import Autocomplete from "@mui/material/Autocomplete";
+import Chip from "@mui/material/Chip";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogActions from "@mui/material/DialogActions";
+import type { Skill, UserSkill } from "../../types/skill";
 
 interface ProfileData {
   first_name: string;
@@ -112,7 +122,7 @@ const Profile = () => {
     setIsSaving(true);
     setError(null);
     setSuccessMessage(null);
-    
+
     try {
       const formData = new FormData();
       if (profileData.first_name)
@@ -128,21 +138,24 @@ const Profile = () => {
       await api.patch("/auth/profile/", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      
+
       // Refresh profile data to get updated avatar URL
       const response = await api.get("/auth/profile/");
       setProfileData(response.data);
-      
+
       // Clear the avatar file and preview after successful save
       setAvatarFile(null);
       setAvatarPreview(null);
-      
+
       setIsEditing(false);
       setSuccessMessage("Profile updated successfully!");
       setAvatarUpdated(true); // Mark avatar as updated
     } catch (error: any) {
       console.error("Error saving profile data:", error);
-      setError(error.response?.data?.message || "Failed to update profile. Please try again.");
+      setError(
+        error.response?.data?.message ||
+          "Failed to update profile. Please try again."
+      );
       // Re-enable editing if save failed
       setIsEditing(true);
     } finally {
@@ -161,7 +174,7 @@ const Profile = () => {
 
   const handleAddSkills = async () => {
     for (const skill of selectedSkills) {
-      if (!userSkills.some(us => us.skill_id === skill.id)) {
+      if (!userSkills.some((us) => us.skill_id === skill.id)) {
         await addUserSkill(skill.id);
       }
     }
@@ -182,7 +195,14 @@ const Profile = () => {
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
       <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }}>
-        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", mb: 4 }}>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            mb: 4,
+          }}
+        >
           <Box sx={{ position: "relative", mb: 0 }}>
             <Avatar
               sx={{
@@ -190,15 +210,18 @@ const Profile = () => {
                 height: 120,
                 cursor: isEditing ? "pointer" : "default",
                 border: isEditing ? "3px dashed #ccc" : "none",
-                "&:hover": isEditing ? {
-                  border: "3px dashed #666",
-                  opacity: 0.8,
-                } : {},
+                "&:hover": isEditing
+                  ? {
+                      border: "3px dashed #666",
+                      opacity: 0.8,
+                    }
+                  : {},
               }}
               src={
                 avatarPreview ||
                 (profileData.avatar
-                  ? getAvatarUrl(profileData.avatar) + (avatarUpdated ? `?t=${Date.now()}` : "")
+                  ? getAvatarUrl(profileData.avatar) +
+                    (avatarUpdated ? `?t=${Date.now()}` : "")
                   : undefined)
               }
               alt={`${profileData.first_name} ${profileData.last_name}`}
@@ -236,7 +259,14 @@ const Profile = () => {
 
         <Grid container spacing={3}>
           <Grid size={{ xs: 12 }}>
-            <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "flex-end",
+                mb: 2,
+                gap: 1,
+              }}
+            >
               {isEditing ? (
                 <Button
                   variant="contained"
@@ -248,13 +278,25 @@ const Profile = () => {
                   {isSaving ? "Saving..." : "Save Changes"}
                 </Button>
               ) : (
-                <Button
-                  variant="outlined"
-                  startIcon={<EditIcon />}
-                  onClick={handleEdit}
-                >
-                  Edit Profile
-                </Button>
+                <>
+                  <Button
+                    variant="outlined"
+                    startIcon={<EditIcon />}
+                    onClick={handleEdit}
+                    color="secondary"
+                  >
+                    Edit Profile
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    startIcon={<SchoolIcon />}
+                    component={Link}
+                    to="/certificates"
+                    color="secondary"
+                  >
+                    My Certificates
+                  </Button>
+                </>
               )}
             </Box>
           </Grid>
@@ -302,12 +344,23 @@ const Profile = () => {
         </Grid>
 
         <Box sx={{ mt: 3 }}>
-          <Typography variant="h6" gutterBottom>Skills</Typography>
+          <Typography variant="h6" gutterBottom>
+            Skills
+          </Typography>
           {loadingSkills ? (
-            <Typography variant="body2" color="text.secondary">Loading skills...</Typography>
+            <Typography variant="body2" color="text.secondary">
+              Loading skills...
+            </Typography>
           ) : (
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
-              {userSkills.map(skill => (
+            <Box
+              sx={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: 1,
+                alignItems: "center",
+              }}
+            >
+              {userSkills.map((skill) => (
                 <Chip
                   key={skill.skill_id}
                   label={skill.skill_name}
@@ -317,7 +370,12 @@ const Profile = () => {
                   sx={{ fontSize: 16 }}
                 />
               ))}
-              <Button size="small" variant="outlined" sx={{ ml: 1 }} onClick={() => setAddSkillsOpen(true)}>
+              <Button
+                size="small"
+                variant="outlined"
+                sx={{ ml: 1 }}
+                onClick={() => setAddSkillsOpen(true)}
+              >
                 Add Skills
               </Button>
             </Box>
@@ -325,7 +383,12 @@ const Profile = () => {
         </Box>
 
         {/* Add Skills Modal */}
-        <Dialog open={addSkillsOpen} onClose={() => setAddSkillsOpen(false)} maxWidth="xs" fullWidth>
+        <Dialog
+          open={addSkillsOpen}
+          onClose={() => setAddSkillsOpen(false)}
+          maxWidth="xs"
+          fullWidth
+        >
           <DialogTitle>Add Skills</DialogTitle>
           <DialogContent>
             <Autocomplete
@@ -348,18 +411,20 @@ const Profile = () => {
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setAddSkillsOpen(false)}>Cancel</Button>
-            <Button onClick={handleAddSkills} variant="contained">Add</Button>
+            <Button onClick={handleAddSkills} variant="contained">
+              Add
+            </Button>
           </DialogActions>
         </Dialog>
       </Paper>
-      
+
       {/* Error Alert */}
       {error && (
         <Alert severity="error" sx={{ mt: 2 }}>
           {error}
         </Alert>
       )}
-      
+
       {/* Success Notification */}
       <Snackbar
         open={!!successMessage}

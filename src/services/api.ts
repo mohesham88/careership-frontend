@@ -105,7 +105,6 @@ export const handleApiError = (error: unknown): ApiError => {
   return new ApiError(500, "An unexpected error occurred");
 };
 
-
 // Skills API
 export const fetchSkills = () => api.get("/auth/skills/");
 export const fetchUserSkills = () => api.get("/auth/user-skills/");
@@ -133,7 +132,5 @@ export const createSubmission = (
 ) => {
   return api.post(`/projects/${projectId}/tasks/${taskId}/submissions/`, data);
 };
-
-
 
 export default api;

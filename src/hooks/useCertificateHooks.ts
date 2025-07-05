@@ -4,7 +4,7 @@ import {
   type UseMutationResult,
   type UseQueryResult,
 } from "@tanstack/react-query";
-import api from "../services/api";
+import api, { handleApiError } from "../services/api";
 import { useNavigate } from "react-router-dom";
 
 type RequestCertificateResponse = {
@@ -33,13 +33,14 @@ const requestCertificate = async (
   return data;
 };
 
-type Certificate = {
-  id: number;
+export interface Certificate {
   no: string;
-  project_id: number;
   user_id: number;
-  created_at: Date;
-};
+  project_id: number;
+  project_name?: string;
+  created_at: string;
+  updated_at: string;
+}
 
 const getCertificate = async (certificate_no: string): Promise<Certificate> => {
   const { data } = await api.get<Certificate>(
@@ -80,25 +81,26 @@ export const usePreviewCertificate = (): UseMutationResult<
   });
 };
 
-export const useDownloadCertificate = (
-  certificate_no: string
-): UseMutationResult<Blob, Error, void> => {
+export const useDownloadCertificate = () => {
   return useMutation({
-    mutationFn: () => downloadCertificate(certificate_no),
-    onSuccess: (blob) => {
-      // Create download link and trigger download
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `certificate-${certificate_no}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-      console.log("Certificate downloaded successfully");
-    },
-    onError: (error) => {
-      console.error("Failed to download certificate:", error);
+    mutationFn: async (certificateNo: string) => {
+      try {
+        const response = await api.get(`/certificates/${certificateNo}/download`, {
+          responseType: "blob",
+        });
+        // Create a URL for the blob and trigger download
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", `certificate-${certificateNo}.pdf`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+        return response.data;
+      } catch (error) {
+        throw handleApiError(error);
+      }
     },
   });
 };
@@ -134,6 +136,20 @@ export const useRequestCertificate = (): UseMutationResult<
     },
     onError: (error) => {
       console.error("Failed to request certificate:", error);
+    },
+  });
+};
+
+export const useGetCertificates = () => {
+  return useQuery({
+    queryKey: ["certificates"],
+    queryFn: async () => {
+      try {
+        const response = await api.get("/certificates/");
+        return response.data as Certificate[];
+      } catch (error) {
+        throw handleApiError(error);
+      }
     },
   });
 };
