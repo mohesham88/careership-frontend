@@ -4,15 +4,10 @@ import type { Task } from "../types/project";
 import api from "../services/api";
 import {
   Container,
-  Card,
   Typography,
   Box,
   Chip,
-  Grid,
   Alert,
-  Skeleton,
-  Paper,
-  Breadcrumbs,
   Button,
   Divider,
   CircularProgress,
@@ -21,316 +16,440 @@ import {
   FormControl,
   InputLabel,
   Select,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemIcon,
+  Paper,
+  IconButton,
+  useTheme,
+  useMediaQuery,
+  Drawer,
+  Tooltip,
 } from "@mui/material";
 import {
-  ArrowBack as ArrowBackIcon,
-  Schedule as ScheduleIcon,
   Assignment as AssignmentIcon,
+  Schedule as ScheduleIcon,
   CheckCircle as CheckCircleIcon,
   FactCheck as FactCheckIcon,
-  EventNote as EventNoteIcon,
+  Send as SendIcon,
+  FormatListBulleted as ListIcon,
+  KeyboardArrowDown as ArrowDownIcon,
+  KeyboardArrowUp as ArrowUpIcon,
+  PendingOutlined as PendingIcon,
+  TrendingUp as HardIcon,
+  TrendingFlat as MediumIcon,
+  TrendingDown as EasyIcon,
 } from "@mui/icons-material";
-import { useTheme } from "@mui/material/styles";
-import { fetchProjectRegistrations } from "../services/teams";
-import { fetchTeams } from "../services/teams";
+import { fetchProjectRegistrations, fetchTeams } from "../services/teams";
 import { createSubmission } from "../services/api";
 import type { Team } from "../types/team";
 
+const DRAWER_WIDTH = 280;
+
 export default function TaskDetail() {
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const { projectId, taskId } = useParams<{
     projectId: string;
     taskId: string;
   }>();
+
   const [task, setTask] = useState<Task | null>(null);
+  const [projectTasks, setProjectTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const theme = useTheme();
   const [teams, setTeams] = useState<Team[]>([]);
+  const [registeredTeamUuids, setRegisteredTeamUuids] = useState<string[]>([]);
+
+  // Submission state
+  const [submitDialogOpen, setSubmitDialogOpen] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState<string>("");
   const [deploymentUrl, setDeploymentUrl] = useState("");
   const [githubUrl, setGithubUrl] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
-  const [registeredTeamUuids, setRegisteredTeamUuids] = useState<string[]>([]);
+
+  // Mobile drawer state
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
-    const fetchTask = async () => {
+    const fetchData = async () => {
       if (!projectId || !taskId) return;
+      setLoading(true);
       try {
-        const response = await api.get(
+        // Fetch current task
+        const taskResponse = await api.get(
           `/projects/${projectId}/tasks/${taskId}/`
         );
-        setTask(response.data);
-        setLoading(false);
-      } catch (err) {
-        setError("Failed to load task");
-        setLoading(false);
-      }
-    };
+        setTask(taskResponse.data);
 
-    fetchTask();
+        // Fetch all project tasks
+        const tasksResponse = await api.get(`/projects/${projectId}/tasks/`);
+        setProjectTasks(tasksResponse.data);
 
-    // Fetch teams for submission
-    fetchTeams().then((res) => {
-      setTeams(res.data);
-    });
-    // Fetch registered teams for this project
-    if (projectId) {
-      fetchProjectRegistrations(Number(projectId)).then((res) => {
+        // Fetch teams and registrations
+        const [teamsRes, registrationsRes] = await Promise.all([
+          fetchTeams(),
+          fetchProjectRegistrations(Number(projectId)),
+        ]);
+
+        setTeams(teamsRes.data);
         setRegisteredTeamUuids(
-          res.data.map((reg: any) => {
-            // Extract UUID from "Team Name (uuid)"
+          registrationsRes.data.map((reg: any) => {
             const match = reg.team.match(/\(([0-9a-fA-F-]+)\)$/);
             return match ? match[1] : reg.team;
           })
         );
-      });
-    }
+      } catch (err) {
+        setError("Failed to load task data");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, [projectId, taskId]);
+
+  const handleSubmit = async () => {
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      await createSubmission(projectId!, taskId!, {
+        team: selectedTeam,
+        deployment_url: deploymentUrl,
+        github_url: githubUrl,
+      });
+      setSubmitSuccess("Submission received and is being processed.");
+      setSubmitDialogOpen(false);
+      // Reset form
+      setSelectedTeam("");
+      setDeploymentUrl("");
+      setGithubUrl("");
+    } catch (err: any) {
+      setSubmitError(err?.response?.data?.message || "Submission failed.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDrawerToggle = () => {
+    setMobileOpen(!mobileOpen);
+  };
+
+  const getDifficultyIcon = (difficulty: number | string) => {
+    switch (difficulty) {
+      case 1:
+        return <EasyIcon color="success" fontSize="small" />;
+      case 2:
+        return <MediumIcon color="warning" fontSize="small" />;
+      default:
+        return <HardIcon color="error" fontSize="small" />;
+    }
+  };
+
+  const tasksList = (
+    <Box sx={{ width: "100%", bgcolor: "background.paper" }}>
+      <Box sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
+        <Typography variant="h6" noWrap color="text.primary">
+          Project Tasks
+        </Typography>
+      </Box>
+      <List sx={{ width: "100%" }}>
+        {projectTasks.map((t) => {
+          const isSelected = t.id === Number(taskId);
+          return (
+            <ListItem
+              key={t.id}
+              component={Link}
+              to={`/projects/${projectId}/tasks/${t.id}`}
+              sx={{
+                textDecoration: "none",
+                bgcolor: isSelected ? "primary.main" : "transparent",
+                "&:hover": {
+                  bgcolor: isSelected ? "primary.dark" : "action.hover",
+                },
+                "& .MuiListItemIcon-root, & .MuiListItemText-root": {
+                  color: isSelected ? "primary.contrastText" : "text.primary",
+                },
+              }}
+            >
+              <ListItemIcon>
+                <AssignmentIcon />
+              </ListItemIcon>
+              <ListItemText
+                primary={t.name}
+                secondary={
+                  <Box sx={{ mt: 0.5, display: "flex", alignItems: "center" }}>
+                    <Tooltip title={`Difficulty: ${t.difficulty_level}`}>
+                      <Box component="span" sx={{ display: "flex" }}>
+                        {getDifficultyIcon(t.difficulty_level)}
+                      </Box>
+                    </Tooltip>
+                  </Box>
+                }
+              />
+              {isSelected && <ArrowDownIcon />}
+            </ListItem>
+          );
+        })}
+      </List>
+    </Box>
+  );
 
   if (loading) {
     return (
-      <Container maxWidth="md" sx={{ py: 4 }}>
-        <Skeleton variant="text" width={200} height={32} sx={{ mb: 2 }} />
-        <Skeleton
-          variant="rectangular"
-          width="100%"
-          height={200}
-          sx={{ mb: 3 }}
-        />
-        <Grid container spacing={3}>
-          <Grid size={{ xs: 12, md: 8 }}>
-            <Skeleton variant="text" width="60%" height={48} sx={{ mb: 2 }} />
-            <Skeleton variant="text" width="100%" height={24} sx={{ mb: 1 }} />
-            <Skeleton variant="rectangular" width="100%" height={120} />
-          </Grid>
-          <Grid size={{ xs: 12, md: 4 }}>
-            <Skeleton variant="rectangular" width="100%" height={120} />
-          </Grid>
-        </Grid>
-      </Container>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "60vh",
+        }}
+      >
+        <CircularProgress />
+      </Box>
     );
   }
 
   if (error || !task) {
     return (
       <Container maxWidth="md" sx={{ py: 4 }}>
-        <Alert severity="error" sx={{ mb: 3 }}>
-          {error || "Task not found"}
-        </Alert>
-        <Button
-          component={Link}
-          to={`/projects/${projectId}`}
-          startIcon={<ArrowBackIcon />}
-          variant={theme.palette.mode === "dark" ? "contained" : "outlined"}
-          sx={
-            theme.palette.mode === "dark"
-              ? { fontWeight: 700, boxShadow: 2 }
-              : {}
-          }
-        >
-          Back to Project
-        </Button>
+        <Alert severity="error">{error || "Task not found"}</Alert>
       </Container>
     );
   }
 
   return (
-    <Container maxWidth="md" sx={{ py: 6 }}>
-      <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
-        <Button
-          variant={theme.palette.mode === "dark" ? "contained" : "outlined"}
-          color="primary"
-          onClick={() =>
-            navigate(`/projects/${projectId}/tasks/${taskId}/submissions`)
-          }
-          sx={
-            theme.palette.mode === "dark"
-              ? { fontWeight: 700, boxShadow: 2 }
-              : {}
-          }
+    <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" } }}>
+      {/* Mobile Tasks Toggle */}
+      {isMobile && (
+        <Box
+          sx={{
+            position: "sticky",
+            top: 0,
+            zIndex: 1100,
+            bgcolor: "background.paper",
+            borderBottom: 1,
+            borderColor: "divider",
+            px: 2,
+            py: 1,
+          }}
         >
-          View Submissions
-        </Button>
-      </Box>
-      {/* Breadcrumbs */}
-      <Breadcrumbs sx={{ mb: 3, ml: 0 }}>
-        <Link
-          to={`/projects/${projectId}`}
-          style={{ textDecoration: "none", color: "inherit" }}
-        >
-          <Typography color="text.secondary">Project</Typography>
-        </Link>
-        <Typography color="text.primary">{task.name}</Typography>
-      </Breadcrumbs>
-
-      <Paper
-        elevation={4}
-        sx={{ p: { xs: 3, md: 5 }, mb: 5, borderRadius: 4, boxShadow: 6 }}
-      >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 1 }}>
-          <AssignmentIcon color="action" sx={{ fontSize: 32 }} />
-          <Typography variant="h4" component="h1" sx={{ fontWeight: 600 }}>
-            {task.name}
-          </Typography>
-          <Chip
-            label={task.difficulty_level}
-            color={
-              task.difficulty_level === "Easy"
-                ? "success"
-                : task.difficulty_level === "Medium"
-                ? "warning"
-                : "error"
-            }
-            size="small"
+          <Button
+            fullWidth
+            onClick={handleDrawerToggle}
+            startIcon={<ListIcon />}
+            endIcon={mobileOpen ? <ArrowUpIcon /> : <ArrowDownIcon />}
             variant="outlined"
-            sx={{ ml: 2 }}
-          />
-        </Box>
-        <Typography variant="subtitle1" color="text.secondary" sx={{ mb: 2 }}>
-          Complete this task to progress in your project!
-        </Typography>
-        <Divider sx={{ mb: 3 }} />
-        <Typography
-          variant="body1"
-          color="text.secondary"
-          sx={{ mb: 4, lineHeight: 1.7 }}
-        >
-          {task.description || "No description available"}
-        </Typography>
-        <Grid container spacing={0} alignItems="stretch">
-          <Grid
-            size={{ xs: 12, md: 6 }}
-            sx={{ pr: { md: 3 }, borderRight: { md: "1px solid #eee" } }}
+            color="secondary"
+            sx={{ justifyContent: "space-between" }}
           >
-            <Typography variant="subtitle1" color="text.secondary" gutterBottom>
-              Task Details
-            </Typography>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
-              <ScheduleIcon color="action" sx={{ fontSize: 20 }} />
-              <Typography variant="body2" color="text.secondary">
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Typography color="text.primary">Project Tasks</Typography>
+              <Tooltip title="Tasks in progress">
+                <PendingIcon
+                  color="secondary"
+                  sx={{
+                    animation: "spin 2s linear infinite",
+                    "@keyframes spin": {
+                      "0%": {
+                        transform: "rotate(0deg)",
+                      },
+                      "100%": {
+                        transform: "rotate(360deg)",
+                      },
+                    },
+                  }}
+                />
+              </Tooltip>
+            </Box>
+          </Button>
+        </Box>
+      )}
+
+      {/* Sidebar/Drawer */}
+      {isMobile ? (
+        <Drawer
+          anchor="top"
+          variant="temporary"
+          open={mobileOpen}
+          onClose={handleDrawerToggle}
+          ModalProps={{ keepMounted: true }}
+          sx={{
+            "& .MuiDrawer-paper": {
+              width: "100%",
+              maxHeight: "60vh",
+              boxSizing: "border-box",
+            },
+          }}
+        >
+          {tasksList}
+        </Drawer>
+      ) : (
+        <Paper
+          elevation={2}
+          sx={{
+            width: DRAWER_WIDTH,
+            flexShrink: 0,
+            height: "100vh",
+            position: "sticky",
+            top: 0,
+            overflowY: "auto",
+          }}
+        >
+          {tasksList}
+        </Paper>
+      )}
+
+      {/* Main content */}
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          p: 3,
+          width: { md: `calc(100% - ${DRAWER_WIDTH}px)` },
+        }}
+      >
+        <Paper elevation={2} sx={{ p: 4, borderRadius: 2 }}>
+          {/* Task Header */}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
+            <AssignmentIcon color="primary" sx={{ fontSize: 40 }} />
+            <Box>
+              <Typography variant="h4" component="h1" gutterBottom>
+                {task.name}
+              </Typography>
+              <Box sx={{ mt: 0.5, display: "flex", alignItems: "center" }}>
+                <Tooltip title={`Difficulty: ${task.difficulty_level}`}>
+                  <Box component="span" sx={{ display: "flex" }}>
+                  {getDifficultyIcon(task.difficulty_level)}
+                  </Box>
+                </Tooltip>
+              </Box>
+            </Box>
+          </Box>
+
+          <Divider sx={{ mb: 3 }} />
+
+          {/* Task Description */}
+          <Typography variant="body1" paragraph>
+            {task.description || "No description available"}
+          </Typography>
+
+          {/* Task Info */}
+          <Box sx={{ mt: 4, display: "flex", gap: 4, flexWrap: "wrap" }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <ScheduleIcon color="action" />
+              <Typography>
                 Duration: {task.duration_in_days} day
                 {task.duration_in_days !== 1 ? "s" : ""}
               </Typography>
             </Box>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
-              <CheckCircleIcon color="action" sx={{ fontSize: 20 }} />
-              <Typography variant="body2" color="text.secondary">
-                Created: {task.created_at}
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <FactCheckIcon color="action" />
+              <Typography>Tests: {task.tests}</Typography>
+            </Box>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <CheckCircleIcon color="action" />
+              <Typography>
+                Created: {new Date(task.created_at).toLocaleDateString()}
               </Typography>
             </Box>
-          </Grid>
-          <Grid
-            size={{ xs: 12, md: 6 }}
-            sx={{ pl: { md: 3 }, mt: { xs: 3, md: 0 } }}
-          >
-            <Typography variant="subtitle1" color="text.secondary" gutterBottom>
-              Tests
-            </Typography>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 1 }}>
-              <EventNoteIcon color="primary" sx={{ fontSize: 20 }} />
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                sx={{ fontWeight: 500, fontSize: 18 }}
-              >
-                {task.tests}
-              </Typography>
-            </Box>
-          </Grid>
-        </Grid>
-      </Paper>
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: 2,
-          mt: 2,
-        }}
+          </Box>
+
+          {/* Submit Button */}
+          <Box sx={{ mt: 4, display: "flex", justifyContent: "flex-end" }}>
+            <Button
+              variant="contained"
+              color="primary"
+              size="large"
+              startIcon={<SendIcon />}
+              onClick={() => setSubmitDialogOpen(true)}
+            >
+              Submit Task
+            </Button>
+          </Box>
+        </Paper>
+
+        {/* Success Message */}
+        {submitSuccess && (
+          <Alert severity="success" sx={{ mt: 2 }}>
+            {submitSuccess}
+          </Alert>
+        )}
+      </Box>
+
+      {/* Submit Dialog */}
+      <Dialog
+        open={submitDialogOpen}
+        onClose={() => setSubmitDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
       >
-        <FormControl fullWidth sx={{ maxWidth: 400 }}>
-          <InputLabel id="team-label">Team</InputLabel>
-          <Select
-            labelId="team-label"
-            value={selectedTeam}
-            label="Team"
-            onChange={(e) => setSelectedTeam(e.target.value)}
+        <DialogTitle>Submit Task</DialogTitle>
+        <DialogContent>
+          <FormControl fullWidth sx={{ mt: 2 }}>
+            <InputLabel>Team</InputLabel>
+            <Select
+              value={selectedTeam}
+              label="Team"
+              onChange={(e) => setSelectedTeam(e.target.value)}
+              disabled={submitting}
+            >
+              {teams
+                .filter((team) => registeredTeamUuids.includes(team.uuid))
+                .map((team) => (
+                  <MenuItem key={team.uuid} value={team.uuid}>
+                    {team.name}
+                  </MenuItem>
+                ))}
+            </Select>
+          </FormControl>
+          <TextField
+            label="Deployment URL"
+            value={deploymentUrl}
+            onChange={(e) => setDeploymentUrl(e.target.value)}
+            fullWidth
+            margin="normal"
             disabled={submitting}
-          >
-            {teams
-              .filter((team) => registeredTeamUuids.includes(team.uuid))
-              .map((team) => (
-                <MenuItem key={team.uuid} value={team.uuid}>
-                  {team.name}
-                </MenuItem>
-              ))}
-          </Select>
-        </FormControl>
-        <TextField
-          label="Deployment URL"
-          value={deploymentUrl}
-          onChange={(e) => setDeploymentUrl(e.target.value)}
-          fullWidth
-          sx={{ maxWidth: 400 }}
-          disabled={submitting}
-        />
-        <TextField
-          label="GitHub URL"
-          value={githubUrl}
-          onChange={(e) => setGithubUrl(e.target.value)}
-          fullWidth
-          sx={{ maxWidth: 400 }}
-          disabled={submitting}
-        />
-        <Box sx={{ display: "flex", gap: 2, justifyContent: "center", mt: 2 }}>
+          />
+          <TextField
+            label="GitHub URL"
+            value={githubUrl}
+            onChange={(e) => setGithubUrl(e.target.value)}
+            fullWidth
+            margin="normal"
+            disabled={submitting}
+          />
+          {submitError && (
+            <Alert severity="error" sx={{ mt: 2 }}>
+              {submitError}
+            </Alert>
+          )}
+        </DialogContent>
+        <DialogActions>
           <Button
-            component={Link}
-            to={`/projects/${projectId}`}
-            startIcon={<ArrowBackIcon />}
-            variant={theme.palette.mode === "dark" ? "contained" : "outlined"}
-            sx={
-              theme.palette.mode === "dark"
-                ? { fontWeight: 700, boxShadow: 2 }
-                : {}
-            }
+            onClick={() => setSubmitDialogOpen(false)}
             disabled={submitting}
           >
-            Back to Project
+            Cancel
           </Button>
           <Button
+            onClick={handleSubmit}
             variant="contained"
-            color="primary"
-            onClick={async () => {
-              setSubmitting(true);
-              setSubmitError(null);
-              setSubmitSuccess(null);
-              try {
-                await createSubmission(projectId!, taskId!, {
-                  team: selectedTeam,
-                  deployment_url: deploymentUrl,
-                  github_url: githubUrl,
-                });
-                setSubmitSuccess("Submission received and is being processed.");
-              } catch (err: any) {
-                setSubmitError(
-                  err?.response?.data?.message || "Submission failed."
-                );
-              } finally {
-                setSubmitting(false);
-              }
-            }}
             disabled={submitting || !selectedTeam}
-            startIcon={
-              submitting ? <CircularProgress size={20} color="inherit" /> : null
-            }
+            startIcon={submitting ? <CircularProgress size={20} /> : null}
           >
             {submitting ? "Submitting..." : "Submit"}
           </Button>
-        </Box>
-      </Box>
-    </Container>
+        </DialogActions>
+      </Dialog>
+    </Box>
   );
 }
