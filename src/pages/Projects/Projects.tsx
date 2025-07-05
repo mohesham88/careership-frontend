@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import Pagination from '@mui/material/Pagination';
+import { useEffect, useState } from "react";
+import Pagination from "@mui/material/Pagination";
 import {
   Container,
   Card,
@@ -13,11 +13,14 @@ import {
   MenuItem,
   InputLabel,
   FormControl,
+  Button,
 } from "@mui/material";
+import { SmartToy as AIIcon } from "@mui/icons-material";
+import { useNavigate } from "react-router-dom";
 
 import type { Project } from "../../types/project";
 import ProjectCard from "../../components/ProjectCard";
-import api from '../../services/api';
+import api from "../../services/api";
 
 const PAGE_SIZE = 10;
 const DIFFICULTY_OPTIONS = ["", "Easy", "Medium", "Hard"];
@@ -29,8 +32,9 @@ export default function Projects() {
   const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [difficulty, setDifficulty] = useState('');
-  const [category, setCategory] = useState('');
+  const [difficulty, setDifficulty] = useState("");
+  const [category, setCategory] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     setPage(1); // Reset page when filters change
@@ -40,18 +44,19 @@ export default function Projects() {
     setLoading(true);
     setError(null);
     const params = new URLSearchParams();
-    params.append('page', page.toString());
-    if (difficulty) params.append('difficulty_level', difficulty);
-    if (category) params.append('category', category);
+    params.append("page", page.toString());
+    if (difficulty) params.append("difficulty_level", difficulty);
+    if (category) params.append("category", category);
 
-    api.get(`/projects/?${params.toString()}`)
-      .then(res => {
+    api
+      .get(`/projects/?${params.toString()}`)
+      .then((res) => {
         setProjects(res.data.results);
         setCount(res.data.count);
         setLoading(false);
       })
       .catch(() => {
-        setError('Failed to load projects');
+        setError("Failed to load projects");
         setLoading(false);
       });
   }, [page, difficulty, category]);
@@ -102,16 +107,18 @@ export default function Projects() {
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Box sx={{ mb: 4, display: 'flex', gap: 2 }}>
+      <Box sx={{ mb: 4, display: "flex", gap: 2 }}>
         <FormControl size="small" sx={{ minWidth: 140 }}>
           <InputLabel>Difficulty</InputLabel>
           <Select
             value={difficulty}
             label="Difficulty"
-            onChange={e => setDifficulty(e.target.value)}
+            onChange={(e) => setDifficulty(e.target.value)}
           >
-            {DIFFICULTY_OPTIONS.map(opt => (
-              <MenuItem key={opt} value={opt}>{opt || 'All'}</MenuItem>
+            {DIFFICULTY_OPTIONS.map((opt) => (
+              <MenuItem key={opt} value={opt}>
+                {opt || "All"}
+              </MenuItem>
             ))}
           </Select>
         </FormControl>
@@ -120,21 +127,49 @@ export default function Projects() {
           <Select
             value={category}
             label="Category"
-            onChange={e => setCategory(e.target.value)}
+            onChange={(e) => setCategory(e.target.value)}
           >
-            {CATEGORY_OPTIONS.map(opt => (
-              <MenuItem key={opt} value={opt}>{opt || 'All'}</MenuItem>
+            {CATEGORY_OPTIONS.map((opt) => (
+              <MenuItem key={opt} value={opt}>
+                {opt || "All"}
+              </MenuItem>
             ))}
           </Select>
         </FormControl>
       </Box>
       <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          Explore Projects
-        </Typography>
-        <Typography variant="body1" color="text.secondary">
-          Discover amazing projects and start your next adventure
-        </Typography>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 2,
+          }}
+        >
+          <Box>
+            <Typography variant="h4" component="h1" gutterBottom>
+              Explore Projects
+            </Typography>
+            <Typography variant="body1" color="text.secondary">
+              Discover amazing projects and start your next adventure
+            </Typography>
+          </Box>
+          <Button
+            variant="contained"
+            startIcon={<AIIcon />}
+            onClick={() => navigate("/projects/drafts")}
+            sx={{
+              bgcolor: "primary.main",
+              "&:hover": {
+                bgcolor: "primary.dark",
+              },
+              px: 3,
+              py: 1,
+            }}
+          >
+            AI Project Drafts
+          </Button>
+        </Box>
       </Box>
 
       <Grid container spacing={3}>
@@ -155,7 +190,7 @@ export default function Projects() {
       )}
 
       {totalPages > 1 && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+        <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
           <Pagination
             count={totalPages}
             page={page}
