@@ -132,7 +132,7 @@ const Pricing = () => {
           {plans.map((plan, i) => (
             <Grid key={plan.title} size={{ xs: 12, md: 4 }}>
               <motion.div
-                variants={cardVariants}
+                variants={cardVariants as any}
                 initial="hidden"
                 animate="visible"
                 custom={i}
