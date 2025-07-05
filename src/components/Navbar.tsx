@@ -54,6 +54,7 @@ export default function Navbar({ darkMode, onDarkModeToggle }: NavbarProps) {
     { label: "Home", path: "/" },
     { label: "Projects", path: "/projects" },
     { label: "Teams", path: "/teams" },
+    { label: "Pricing", path: "/pricing" },
   ];
 
   const renderMobileMenu = () => (

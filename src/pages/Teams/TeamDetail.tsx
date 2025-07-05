@@ -22,11 +22,15 @@ import {
   ListItemAvatar,
   ListItemText,
   IconButton,
+  Menu,
+  MenuItem,
 } from "@mui/material";
 import {
   Group as GroupIcon,
   Person as PersonIcon,
   Email as EmailIcon,
+  Edit as EditIcon,
+  MoreVert as MoreVertIcon,
 } from "@mui/icons-material";
 import type { Team, Invitation } from "../../types/team";
 import type { User } from "../../types/user";
@@ -39,6 +43,7 @@ import {
   enableInvitation,
   disableInvitation,
   deleteInvitation,
+  updateTeam,
 } from "../../services/teams";
 
 import { useAuthStore } from "../../store/authStore";
@@ -63,6 +68,12 @@ export default function TeamDetail() {
     uuid: string | null;
   }>({ open: false, uuid: null });
   const [membersModalOpen, setMembersModalOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editOwner, setEditOwner] = useState("");
+  const [editError, setEditError] = useState<string | null>(null);
+  const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
+  const [updating, setUpdating] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuthStore();
 
@@ -145,6 +156,32 @@ export default function TeamDetail() {
     user?.email?.toLowerCase().trim() ===
     team?.owner?.email?.toLowerCase().trim();
 
+  const handleEditTeam = () => {
+    setEditName(team?.name || "");
+    setEditOwner(team?.owner?.email || "");
+    setEditDialogOpen(true);
+    setMenuAnchorEl(null);
+  };
+
+  const handleUpdateTeam = async () => {
+    if (!team) return;
+    setUpdating(true);
+    setEditError(null);
+    try {
+      await updateTeam(team.uuid, {
+        name: editName,
+        owner: editOwner,
+      });
+      const updatedTeam = await fetchTeam(team.uuid);
+      setTeam(updatedTeam.data);
+      setEditDialogOpen(false);
+    } catch (error: any) {
+      setEditError(error.response?.data?.message || "Failed to update team");
+    } finally {
+      setUpdating(false);
+    }
+  };
+
   if (loading) {
     return (
       <Container maxWidth="md" sx={{ py: 6 }}>
@@ -169,10 +206,32 @@ export default function TeamDetail() {
         <Avatar sx={{ bgcolor: "primary.main", width: 56, height: 56 }}>
           {team.name.charAt(0).toUpperCase()}
         </Avatar>
-        <Box>
-          <Typography variant="h4" fontWeight={700}>
-            {team.name}
-          </Typography>
+        <Box sx={{ flex: 1 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Typography variant="h4" fontWeight={700}>
+              {team.name}
+            </Typography>
+            {isOwner && (
+              <>
+                <IconButton
+                  size="small"
+                  onClick={(e) => setMenuAnchorEl(e.currentTarget)}
+                >
+                  <MoreVertIcon />
+                </IconButton>
+                <Menu
+                  anchorEl={menuAnchorEl}
+                  open={Boolean(menuAnchorEl)}
+                  onClose={() => setMenuAnchorEl(null)}
+                >
+                  <MenuItem onClick={handleEditTeam}>
+                    <EditIcon fontSize="small" sx={{ mr: 1 }} />
+                    Edit Team
+                  </MenuItem>
+                </Menu>
+              </>
+            )}
+          </Box>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 1 }}>
             <PersonIcon fontSize="small" color="action" />
             <Typography variant="body2" color="text.secondary">
@@ -414,6 +473,42 @@ export default function TeamDetail() {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setMembersModalOpen(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
+      {/* Edit Team Dialog */}
+      <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)}>
+        <DialogTitle>Edit Team</DialogTitle>
+        <DialogContent>
+          <TextField
+            label="Team Name"
+            value={editName}
+            onChange={(e) => setEditName(e.target.value)}
+            fullWidth
+            margin="normal"
+          />
+          <TextField
+            label="Owner Email"
+            value={editOwner}
+            onChange={(e) => setEditOwner(e.target.value)}
+            fullWidth
+            margin="normal"
+            helperText="Enter the email of the new team owner"
+          />
+          {editError && (
+            <Alert severity="error" sx={{ mt: 2 }}>
+              {editError}
+            </Alert>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setEditDialogOpen(false)}>Cancel</Button>
+          <Button
+            onClick={handleUpdateTeam}
+            variant="contained"
+            disabled={updating}
+          >
+            {updating ? "Updating..." : "Update Team"}
+          </Button>
         </DialogActions>
       </Dialog>
     </Container>

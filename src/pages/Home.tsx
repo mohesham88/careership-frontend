@@ -534,25 +534,50 @@ const Home = () => {
             <Typography variant="h6" sx={{ mb: 4 }}>
               Join CareerShip and start working on real projects today.
             </Typography>
-            <Button
-              variant="contained"
-              color="primary"
-              size="large"
-              endIcon={<ArrowForward />}
-              href="/signup"
-              sx={{
-                px: 5,
-                py: 1.5,
-                fontWeight: 700,
-                fontSize: 20,
-                borderRadius: 3,
-                boxShadow: 4,
-                transition: "transform 0.2s, box-shadow 0.2s",
-                "&:hover": { transform: "scale(1.06)", boxShadow: 8 },
-              }}
+            <Stack
+              direction={{ xs: "column", sm: "row" }}
+              spacing={2}
+              justifyContent="center"
             >
-              Sign Up Now
-            </Button>
+              <Button
+                variant="outlined"
+                color="primary"
+                size="large"
+                endIcon={<ArrowForward />}
+                href="/pricing"
+                sx={{
+                  px: 5,
+                  py: 1.5,
+                  fontWeight: 700,
+                  fontSize: 20,
+                  borderRadius: 3,
+                  boxShadow: 4,
+                  transition: "transform 0.2s, box-shadow 0.2s",
+                  "&:hover": { transform: "scale(1.06)", boxShadow: 8 },
+                }}
+              >
+                View Pricing
+              </Button>
+              <Button
+                variant="contained"
+                color="primary"
+                size="large"
+                endIcon={<ArrowForward />}
+                href="/signup"
+                sx={{
+                  px: 5,
+                  py: 1.5,
+                  fontWeight: 700,
+                  fontSize: 20,
+                  borderRadius: 3,
+                  boxShadow: 4,
+                  transition: "transform 0.2s, box-shadow 0.2s",
+                  "&:hover": { transform: "scale(1.06)", boxShadow: 8 },
+                }}
+              >
+                Sign Up Now
+              </Button>
+            </Stack>
           </Container>
         </Box>
       </motion.div>
