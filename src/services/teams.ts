@@ -10,14 +10,18 @@ export const fetchTeams = () => api.get<Team[]>("/teams/");
 export const fetchTeam = (uuid: string) => api.get<Team>(`/teams/${uuid}/`);
 export const createTeam = (data: CreateTeamRequest) =>
   api.post<Team>("/teams/", data);
-export const updateTeam = (uuid: string, data: any) =>
-  api.patch(`/teams/${uuid}/`, data);
+export const updateTeam = (teamId: string, data: { name?: string; owner?: string }) => {
+  return api.patch(`/teams/${teamId}/`, data);
+};
 export const deleteTeam = (uuid: string) => api.delete(`/teams/${uuid}/`);
 export const leaveTeam = (uuid: string) => api.post(`/teams/${uuid}/leave/`);
 export const addMember = (uuid: string, email: string) =>
   api.post(`/teams/${uuid}/members/`, { email });
 export const removeMember = (uuid: string, email: string) =>
   api.delete(`/teams/${uuid}/members/`, { data: { email } });
+export const removeTeamMember = (teamId: string, email: string) => {
+  return api.delete(`/teams/${teamId}/members/`, { data: { email } });
+};
 
 // Invitations API
 export const fetchInvitations = (teamUuid: string) =>

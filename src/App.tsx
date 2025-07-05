@@ -29,6 +29,7 @@ import TeamDetail from "./pages/Teams/TeamDetail";
 import CreateAIProject from "./pages/Projects/CreateAIProject";
 import AcceptInvitation from "./pages/Teams/AcceptInvitation";
 import ProjectSubmissions from "./pages/Projects/ProjectSubmissions";
+import Certificates from "./pages/Certificates/Certificates";
 
 // Public routes that don't require authentication
 const publicRoutes = [
@@ -71,6 +72,10 @@ const protectedRoutes = [
   {
     path: "/projects/:projectId/tasks/:taskId",
     element: <TaskDetail />,
+  },
+  {
+    path: "/certificates",
+    element: <Certificates />,
   },
   {
     path: "/certificates/:certificate_no",
